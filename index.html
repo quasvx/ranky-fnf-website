@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Básico -->
     <title>Ranky - The Ultimate FNF Visual Mod</title>
     <meta name="description" content="Enhance your Friday Night Funkin experience with Ranky. A high-performance V-Slice mod featuring dynamic accuracy scaling and RGB BPM synchronization.">
     <meta name="keywords" content="FNF Mod, Friday Night Funkin, Ranky Mod, V-Slice, Gaming, Rhythm Game">
     <meta name="author" content="Ranky Team">
 
-    <!-- Open Graph (Discord, Facebook, WhatsApp) -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Ranky - Visual Grading Experience">
     <meta property="og:description" content="Native .hxc architecture for FNF. Get real-time feedback on your performance.">
@@ -18,7 +16,6 @@
     <meta property="og:url" content="https://rankyfnf.cc.cd">
     <meta property="og:site_name" content="Ranky Mod">
 
-    <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Ranky Mod">
     <meta name="twitter:description" content="The most advanced visual grading mod for FNF.">
@@ -29,7 +26,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Recursos para Captcha (Cloudflare y Google) -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
 
@@ -165,7 +161,6 @@
             filter: blur(120px); opacity: 0.1; z-index: -1; border-radius: 50%;
         }
 
-        /* Estilos para Modales de Verificación */
         .verify-modal-wrapper { 
             position: fixed; 
             top: 0; 
@@ -215,90 +210,6 @@
             font-size: 0.8rem;
             color: #64748b;
         }
-
-        .warning-modal-wrapper { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background-color: rgba(0, 0, 0, 0.8); 
-            backdrop-filter: blur(8px);
-            z-index: 20000; 
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        
-        .warning-card { 
-            background: linear-gradient(135deg, #0f172a, #020617);
-            border: 1px solid var(--accent);
-            border-radius: 24px; 
-            padding: 40px; 
-            max-width: 480px; 
-            width: 90%; 
-            text-align: center; 
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.1);
-        }
-        
-        .timer-badge { 
-            width: 80px; 
-            height: 80px; 
-            background: rgba(0, 255, 204, 0.1);
-            border: 2px solid var(--accent); 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin: 0 auto 20px auto; 
-            font-size: 2.2rem; 
-            font-family: monospace; 
-            font-weight: bold; 
-            color: var(--accent); 
-        }
-        
-        .progress-bar-container {
-            width: 100%;
-            height: 3px;
-            background: rgba(0, 255, 204, 0.1);
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--accent), var(--primary));
-            transition: width 0.1s linear;
-        }
-
-        .btn-tech {
-            background: transparent;
-            border: 1px solid var(--accent);
-            padding: 12px 24px;
-            color: var(--accent);
-            font-family: monospace;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-tech:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-outline-tech {
-            background: transparent;
-            border: 1px solid rgba(0, 255, 204, 0.3);
-            padding: 10px 20px;
-            color: #94a3b8;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        .flex-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
-        .link-preview { background: rgba(0,255,204,0.08); border-radius: 12px; padding: 12px; margin: 20px 0; font-family: monospace; font-size: 0.8rem; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -349,43 +260,36 @@
         </div>
 
         <div class="links-container">
-            <!-- Botón de Discord -->
             <a href="/discord" class="link-btn">
                 <img src="https://www.google.com/s2/favicons?domain=discord.com&sz=128" alt="" class="btn-icon">
                 <span id="b_discord">Discord Community</span>
             </a>
             
-            <!-- Botón de RankyQR -->
             <a href="/rankyqr" class="link-btn">
                 <img src="https://rankyfnf.cc.cd/rankyqr.ico" alt="" class="btn-icon" onerror="this.src='https://www.google.com/s2/favicons?domain=rankyfnf.cc.cd&sz=128'">
                 <span id="b_qr">RankyQR Tool</span>
             </a>
 
-            <!-- Botón de Donación BTC Lightning -->
             <a href="https://pay.blink.sv/quasvx" target="_blank" class="link-btn btn-donate">
                 <img src="https://www.google.com/s2/favicons?domain=blink.sv&sz=128" alt="" class="btn-icon">
                 <span id="b_donate">Support the Creators (BTC Lightning)</span>
             </a>
 
-            <!-- Botón de Twitter Quasvx con Verificación -->
             <button id="btn-twitter" class="link-btn btn-twitter">
                 <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
                 <span id="b_twitter">Twitter: Quasvx</span>
             </button>
 
-            <!-- Botón de Twitter Pikapi con Verificación -->
             <button id="btn-pikapi" class="link-btn btn-twitter">
                 <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
                 <span id="b_pikapi">Twitter: Pikapi</span>
             </button>
 
-            <!-- Botón de Descarga Original -->
             <a href="https://gamebanana.com/mods/638963" target="_blank" class="link-btn btn-download">
                 <img src="https://www.google.com/s2/favicons?domain=gamebanana.com&sz=128" alt="" class="btn-icon">
                 <span id="b1">Download Official Mod</span>
             </a>
             
-            <!-- Botón de Colaboración -->
             <a href="https://rankyfnf.cc.cd/form" class="link-btn btn-collab">
                 <img src="https://rankyfnf.cc.cd/formulary.ico" alt="" class="btn-icon">
                 <span id="b3">Register for Collab</span>
@@ -395,7 +299,6 @@
         <img src="https://rankyfnf.cc.cd/rankyicon.png" alt="Ranky Icon" class="footer-img">
     </div>
 
-    <!-- Modales de Verificación -->
     <div class="verify-modal-wrapper" id="verifyModal">
         <div class="verify-card">
             <h3 id="verify-title">VERIFY TO CONTINUE</h3>
@@ -406,23 +309,8 @@
         </div>
     </div>
 
-    <div class="warning-modal-wrapper" id="warning-modal">
-        <div class="warning-card">
-            <div class="timer-badge" id="warning-timer">5</div>
-            <h3>EXTERNAL LINK</h3>
-            <div class="link-preview" id="warning-link-preview">destination → social network</div>
-            <div class="progress-bar-container">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="flex-buttons">
-                <button type="button" id="btn-warning-proceed" class="btn-tech" disabled>PROCEED →</button>
-                <button type="button" class="btn-outline-tech" id="warning-cancel">CANCEL</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- Lógica de Traducción Principal ---
+        // --- Traducción ---
         let currentLang = 'en';
         const translations = {
             en: {
@@ -490,7 +378,7 @@
             updateContent();
         }
 
-        // --- Lógica de Verificación ---
+        // --- Lógica de Verificación (Turnstile -> reCAPTCHA fallback -> recargar) ---
         let configKeys = {
             turnstileSitekey: '0x4AAAAAAAuJYv_3lzb1KvWJ',
             recaptchaSitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
@@ -502,19 +390,21 @@
                 if (data.sitekey) configKeys.turnstileSitekey = data.sitekey;
                 if (data.recaptchaSitekey) configKeys.recaptchaSitekey = data.recaptchaSitekey;
             })
-            .catch(err => console.warn("Config load failed, using defaults", err));
+            .catch(err => console.warn("Config load failed", err));
 
         const verifyManager = {
             pendingUrl: null,
-            currentAttempt: 0,
+            turnstileAttempts: 0,
+            recaptchaAttempts: 0,
             currentProvider: 'turnstile',
             turnstileWidgetId: null,
             recaptchaWidgetId: null,
 
-            async showVerification(targetUrl, displayUrl = '') {
-                if (!targetUrl || targetUrl === '#') return;
+            showVerification(targetUrl) {
+                if (!targetUrl) return;
                 this.pendingUrl = targetUrl;
-                this.currentAttempt = 0;
+                this.turnstileAttempts = 0;
+                this.recaptchaAttempts = 0;
                 this.currentProvider = 'turnstile';
                 
                 const modal = document.getElementById('verifyModal');
@@ -523,7 +413,7 @@
                 const titleEl = document.getElementById('verify-title');
                 
                 titleEl.innerText = "HUMAN VERIFICATION REQUIRED";
-                statusDiv.innerText = "Checking security status...";
+                statusDiv.innerText = "Complete the captcha to continue...";
                 statusDiv.style.color = "var(--warn)";
                 attemptBadge.innerHTML = '';
                 modal.style.display = 'flex';
@@ -547,9 +437,9 @@
                 if (container) container.innerHTML = '';
                 
                 if (this.currentProvider === 'turnstile') {
-                    this.currentAttempt++;
-                    if (attemptBadge) attemptBadge.innerHTML = `Turnstile (Attempt ${this.currentAttempt}/3)`;
-                    if (statusDiv) statusDiv.innerText = "Complete the captcha to continue...";
+                    this.turnstileAttempts++;
+                    attemptBadge.innerHTML = `Turnstile (Attempt ${this.turnstileAttempts}/3)`;
+                    statusDiv.innerText = "Complete the captcha to continue...";
                     
                     if (window.turnstile && container) {
                         this.turnstileWidgetId = turnstile.render(container, {
@@ -562,9 +452,9 @@
                         this.handleCaptchaError('turnstile');
                     }
                 } else if (this.currentProvider === 'recaptcha') {
-                    this.currentAttempt++;
-                    if (attemptBadge) attemptBadge.innerHTML = `reCAPTCHA (Attempt ${this.currentAttempt}/2)`;
-                    if (statusDiv) statusDiv.innerText = "Complete the captcha to continue...";
+                    this.recaptchaAttempts++;
+                    attemptBadge.innerHTML = `reCAPTCHA (Attempt ${this.recaptchaAttempts}/2)`;
+                    statusDiv.innerText = "Complete the captcha to continue...";
                     
                     if (window.grecaptcha && container) {
                         try {
@@ -576,7 +466,6 @@
                                 'error-callback': () => this.handleCaptchaError('recaptcha')
                             });
                         } catch(e) {
-                            console.warn("reCAPTCHA render error:", e);
                             this.handleCaptchaError('recaptcha');
                         }
                     } else {
@@ -587,79 +476,74 @@
             
             async processVerification(token, provider) {
                 const statusDiv = document.getElementById('verify-status');
-                if (statusDiv) statusDiv.innerText = "Validating...";
+                statusDiv.innerText = "Validating...";
                 
                 try {
-                    const isFallback = (provider === 'recaptcha');
                     const response = await fetch('https://ranky-api.pages.dev/api/api', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             type: 'verify', 
                             turnstileToken: token,
-                            isFallback: isFallback
+                            isFallback: (provider === 'recaptcha')
                         })
                     });
                     const result = await response.json();
                     
                     if (result.success) {
-                        if (statusDiv) {
-                            statusDiv.innerText = "Verified! Redirecting...";
-                            statusDiv.style.color = "var(--success)";
-                        }
+                        statusDiv.innerText = "Verified! Redirecting...";
+                        statusDiv.style.color = "var(--success)";
                         const targetUrl = this.pendingUrl;
                         setTimeout(() => {
                             this.closeVerification();
-                            if (targetUrl && targetUrl !== '#') {
-                                window.open(targetUrl, '_blank');
-                            }
+                            if (targetUrl) window.open(targetUrl, '_blank');
                         }, 1000);
                         return;
                     }
                     
+                    // Si el servidor dice que use reCAPTCHA y estamos en Turnstile
                     if (result.useReCaptcha === true && this.currentProvider === 'turnstile') {
-                        if (statusDiv) statusDiv.innerText = "Switching to backup captcha...";
+                        statusDiv.innerText = "Switching to reCAPTCHA...";
                         this.currentProvider = 'recaptcha';
-                        this.currentAttempt = 0;
                         setTimeout(() => this.renderCaptcha(), 1500);
                         return;
                     }
                     
-                    if (this.currentProvider === 'turnstile' && this.currentAttempt < 3) {
-                        if (statusDiv) statusDiv.innerText = `Verification failed. Retrying...`;
-                        setTimeout(() => this.renderCaptcha(), 1500);
-                    } else if (this.currentProvider === 'recaptcha' && this.currentAttempt < 2) {
-                        if (statusDiv) statusDiv.innerText = `Verification failed. Retrying...`;
-                        setTimeout(() => this.renderCaptcha(), 1500);
-                    } else {
-                        if (statusDiv) {
-                            statusDiv.innerText = "Verification failed. Access denied.";
-                            statusDiv.style.color = "var(--warn)";
-                        }
-                        setTimeout(() => this.closeVerification(), 2000);
-                    }
+                    this.handleCaptchaError(provider);
                     
                 } catch (err) {
                     console.error("Verification error:", err);
-                    if (statusDiv) statusDiv.innerText = "Network error. Retrying...";
-                    setTimeout(() => this.renderCaptcha(), 2000);
+                    this.handleCaptchaError(provider);
                 }
             },
             
             handleCaptchaError(provider) {
                 const statusDiv = document.getElementById('verify-status');
-                if (statusDiv) statusDiv.innerText = "Captcha error. Retrying...";
+                const attemptBadge = document.getElementById('attempt-badge');
                 
-                if (provider === 'turnstile' && this.currentProvider === 'turnstile' && this.currentAttempt < 3) {
+                if (provider === 'turnstile' && this.turnstileAttempts < 3) {
+                    statusDiv.innerText = "Verification failed. Retrying...";
                     setTimeout(() => this.renderCaptcha(), 1500);
-                } else if (provider === 'recaptcha' && this.currentProvider === 'recaptcha' && this.currentAttempt < 2) {
-                    setTimeout(() => this.renderCaptcha(), 1500);
-                } else if (this.currentProvider === 'turnstile' && this.currentAttempt >= 3) {
+                } 
+                else if (provider === 'turnstile' && this.turnstileAttempts >= 3) {
+                    // Cambiar a reCAPTCHA después de 3 intentos fallidos de Turnstile
+                    statusDiv.innerText = "Switching to reCAPTCHA...";
                     this.currentProvider = 'recaptcha';
-                    this.currentAttempt = 0;
-                    if (statusDiv) statusDiv.innerText = "Switching to backup captcha...";
                     setTimeout(() => this.renderCaptcha(), 1500);
-                } else {
+                }
+                else if (provider === 'recaptcha' && this.recaptchaAttempts < 2) {
+                    statusDiv.innerText = "Verification failed. Retrying...";
+                    setTimeout(() => this.renderCaptcha(), 1500);
+                }
+                else if (provider === 'recaptcha' && this.recaptchaAttempts >= 2) {
+                    // Fallaron los 2 intentos de reCAPTCHA, recargar la página
+                    statusDiv.innerText = "Too many failed attempts. Reloading...";
+                    statusDiv.style.color = "var(--warn)";
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+                else {
                     this.closeVerification();
                 }
             },
@@ -681,83 +565,30 @@
             }
         };
 
-        // Manejador de advertencia para links externos
-        let pendingWarningUrl = null;
-        function openWarning(url, displayUrl) {
-            pendingWarningUrl = url;
-            const modal = document.getElementById('warning-modal');
-            const timerView = document.getElementById('warning-timer');
-            const progressFill = document.getElementById('progressFill');
-            const proceedBtn = document.getElementById('btn-warning-proceed');
-            const previewSpan = document.getElementById('warning-link-preview');
-            
-            if (previewSpan) previewSpan.innerHTML = `destination → ${displayUrl || url}`;
-            
-            let count = 5;
-            modal.style.display = 'flex';
-            proceedBtn.disabled = true;
-            timerView.innerText = count;
-            progressFill.style.width = '0%';
-            
-            const countdown = setInterval(() => {
-                count--;
-                timerView.innerText = count;
-                progressFill.style.width = `${(5 - count) * 20}%`;
-                if(count <= 0) {
-                    clearInterval(countdown);
-                    timerView.innerText = "GO";
-                    progressFill.style.width = '100%';
-                    proceedBtn.disabled = false;
-                }
-            }, 1000);
-            
-            const proceedHandler = () => {
-                if (pendingWarningUrl) window.open(pendingWarningUrl, '_blank');
-                closeWarning();
-            };
-            proceedBtn.onclick = proceedHandler;
-        }
-        
-        function closeWarning() {
-            const modal = document.getElementById('warning-modal');
-            modal.style.display = 'none';
-            pendingWarningUrl = null;
-        }
-
         // --- Event Listeners ---
         window.onload = () => {
-            // Detectar idioma del navegador
-            if (navigator.language.startsWith('es')) {
-                currentLang = 'es';
-            }
+            if (navigator.language.startsWith('es')) currentLang = 'es';
             updateContent();
             
-            // Botón Twitter Quasvx
             const twitterBtn = document.getElementById('btn-twitter');
             if (twitterBtn) {
                 twitterBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    openWarning('https://x.com/quasvx', 'x.com/quasvx');
+                    verifyManager.showVerification('https://x.com/quasvx');
                 });
             }
             
-            // Botón Twitter Pikapi
             const pikapiBtn = document.getElementById('btn-pikapi');
             if (pikapiBtn) {
                 pikapiBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    openWarning('https://x.com/pikachukawaiix5', 'x.com/pikachukawaiix5');
+                    verifyManager.showVerification('https://x.com/pikachukawaiix5');
                 });
             }
             
             const verifyCancel = document.getElementById('verify-cancel');
             if (verifyCancel) {
                 verifyCancel.addEventListener('click', () => verifyManager.closeVerification());
-            }
-            
-            const warningCancel = document.getElementById('warning-cancel');
-            if (warningCancel) {
-                warningCancel.addEventListener('click', () => closeWarning());
             }
         };
     </script>
