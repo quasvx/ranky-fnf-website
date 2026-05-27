@@ -14,7 +14,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Ranky - Visual Grading Experience">
     <meta property="og:description" content="Native .hxc architecture for FNF. Get real-time feedback on your performance.">
-    <meta property="og:image" content="/rankylogoalt.jpeg">
+    <meta property="og:image" content="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
     <meta property="og:url" content="https://rankyfnf.cc.cd">
     <meta property="og:site_name" content="Ranky Mod">
 
@@ -22,9 +22,9 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Ranky Mod">
     <meta name="twitter:description" content="The most advanced visual grading mod for FNF.">
-    <meta name="twitter:image" content="https://ranky.cc.cd/rankylogoalt.jpeg">
+    <meta name="twitter:image" content="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
 
-    <link rel="icon" type="image/jpeg" href="https://ranky.cc.cd/rankylogoalt.jpeg">
+    <link rel="icon" type="image/jpeg" href="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
@@ -42,7 +42,6 @@
             --glass-border: rgba(255, 255, 255, 0.1);
             --warn: #ffaa44;
             --success: #00ff88;
-            --discord: #5865F2;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -152,7 +151,6 @@
         .btn-collab { --btn-color: var(--success); --btn-glow: rgba(0, 255, 136, 0.3); }
         .btn-donate { --btn-color: var(--warn); --btn-glow: rgba(255, 170, 68, 0.3); }
         .btn-twitter { --btn-color: #1DA1F2; --btn-glow: #1DA1F2; }
-        .btn-facebook { --btn-color: #4267B2; --btn-glow: #4267B2; }
 
         .btn-icon { width: 26px; height: 26px; object-fit: contain; }
 
@@ -167,7 +165,7 @@
             filter: blur(120px); opacity: 0.1; z-index: -1; border-radius: 50%;
         }
 
-        /* Estilos para Modales de Verificación (Extraídos) */
+        /* Estilos para Modales de Verificación */
         .verify-modal-wrapper { 
             position: fixed; 
             top: 0; 
@@ -351,34 +349,34 @@
         </div>
 
         <div class="links-container">
-            <!-- Botón de Discord (Enlace a /discord) -->
-                <a href="/discord" class="link-btn">
+            <!-- Botón de Discord -->
+            <a href="/discord" class="link-btn">
                 <img src="https://www.google.com/s2/favicons?domain=discord.com&sz=128" alt="" class="btn-icon">
                 <span id="b_discord">Discord Community</span>
             </a>
             
-            <!-- Botón de RankyQR (Enlace a /rankyqr) -->
+            <!-- Botón de RankyQR -->
             <a href="/rankyqr" class="link-btn">
-                <img src="https://rankyfnf.cc.cd/rankyqr.ico" alt="" class="btn-icon" onerror="this.src='https://www.google.com/s2/favicons?domain=example.com&sz=128'">
+                <img src="https://rankyfnf.cc.cd/rankyqr.ico" alt="" class="btn-icon" onerror="this.src='https://www.google.com/s2/favicons?domain=rankyfnf.cc.cd&sz=128'">
                 <span id="b_qr">RankyQR Tool</span>
             </a>
 
-            <!-- Botón de Donación (Directo) -->
-           <a href="https://pay.blink.sv/quasvx" target="_blank" class="link-btn btn-donate">
-    <img src="https://www.google.com/s2/favicons?domain=blink.sv&sz=128" alt="" class="btn-icon">
-    <span id="b_donate">Support the Creators (BTC Lightning)</span>
-</a>
+            <!-- Botón de Donación BTC Lightning -->
+            <a href="https://pay.blink.sv/quasvx" target="_blank" class="link-btn btn-donate">
+                <img src="https://www.google.com/s2/favicons?domain=blink.sv&sz=128" alt="" class="btn-icon">
+                <span id="b_donate">Support the Creators (BTC Lightning)</span>
+            </a>
 
-            <!-- Botón de Twitter con Verificación -->
+            <!-- Botón de Twitter Quasvx con Verificación -->
             <button id="btn-twitter" class="link-btn btn-twitter">
                 <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
-                <span id="b_twitter">Twitter Quasvx</span>
+                <span id="b_twitter">Twitter: Quasvx</span>
             </button>
 
-            <!-- Botón de Facebook con Verificación -->
-            <button id="btn-facebook" class="link-btn btn-facebook">
+            <!-- Botón de Twitter Pikapi con Verificación -->
+            <button id="btn-pikapi" class="link-btn btn-twitter">
                 <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
-                <span id="b_facebook">twitter Pikapi</span>
+                <span id="b_pikapi">Twitter: Pikapi</span>
             </button>
 
             <!-- Botón de Descarga Original -->
@@ -397,7 +395,7 @@
         <img src="https://rankyfnf.cc.cd/rankyicon.png" alt="Ranky Icon" class="footer-img">
     </div>
 
-    <!-- Modales de Verificación (Extraídos del segundo código) -->
+    <!-- Modales de Verificación -->
     <div class="verify-modal-wrapper" id="verifyModal">
         <div class="verify-card">
             <h3 id="verify-title">VERIFY TO CONTINUE</h3>
@@ -434,8 +432,10 @@
                 t2: "Dynamic Accuracy Scaling", d2: "Real-time visual feedback based on your hit-window precision.",
                 t3: "RGB BPM-Sync System", d3: "Immersive visual effects that pulse with the song's tempo.",
                 t4: "Adaptive Interface (HUD)", d4: "Smart positioning for Middlescroll and Downscroll layouts.",
-                b0: "View what the mod does", b1: "Download Official Mod", b3: "Register for Collab", b_donate: "Support the Creators (BTC Lightning)",
-                b_discord: "Discord Community", b_qr: "RankyQR Tool", b_twitter: "Twitter: Quasvx", b_facebook: "Twitter: Pikapi"
+                b0: "View what the mod does", b1: "Download Official Mod", b3: "Register for Collab", 
+                b_donate: "Support the Creators (BTC Lightning)",
+                b_discord: "Discord Community", b_qr: "RankyQR Tool", 
+                b_twitter: "Twitter: Quasvx", b_pikapi: "Twitter: Pikapi"
             },
             es: {
                 sub: "La experiencia definitiva de calificación visual",
@@ -444,8 +444,10 @@
                 t2: "Escalado Dinámico", d2: "Feedback visual en tiempo real según tu precisión.",
                 t3: "Sistema RGB Sincronizado", d3: "Efectos visuales que vibran al tempo de la canción.",
                 t4: "Interfaz Adaptable (HUD)", d4: "Posicionamiento inteligente para Middlescroll y Downscroll.",
-                b0: "Ver qué hace el mod", b1: "Descargar Mod Oficial", b3: "Registro para Colaborar", b_donate: "Apoya a los Creadores (BTC Lightning)",
-                b_discord: "Comunidad Discord", b_qr: "Herramienta RankyQR", b_twitter: "Twitter: Quasvx", b_facebook: "Twitter: Pikapi"
+                b0: "Ver qué hace el mod", b1: "Descargar Mod Oficial", b3: "Registro para Colaborar",
+                b_donate: "Apoya a los Creadores (BTC Lightning)",
+                b_discord: "Comunidad Discord", b_qr: "Herramienta RankyQR",
+                b_twitter: "Twitter: Quasvx", b_pikapi: "Twitter: Pikapi"
             }
         };
 
@@ -479,7 +481,7 @@
             document.getElementById('b_discord').innerText = translations[currentLang].b_discord;
             document.getElementById('b_qr').innerText = translations[currentLang].b_qr;
             document.getElementById('b_twitter').innerText = translations[currentLang].b_twitter;
-            document.getElementById('b_facebook').innerText = translations[currentLang].b_facebook;
+            document.getElementById('b_pikapi').innerText = translations[currentLang].b_pikapi;
             document.getElementById('btn-lang').innerText = currentLang.toUpperCase();
         }
 
@@ -488,13 +490,12 @@
             updateContent();
         }
 
-        // --- Lógica de Verificación (Extraída y Adaptada del segundo código) ---
+        // --- Lógica de Verificación ---
         let configKeys = {
             turnstileSitekey: '0x4AAAAAAAuJYv_3lzb1KvWJ',
             recaptchaSitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
         };
 
-        // Intento de cargar config.json externo (si existe, sino usa defaults)
         fetch('https://rankyfnf.cc.cd/config.json', { cache: "no-store" })
             .then(res => res.json())
             .then(data => {
@@ -590,7 +591,6 @@
                 
                 try {
                     const isFallback = (provider === 'recaptcha');
-                    // Usamos la API de verificación del segundo código (funciona con CORS)
                     const response = await fetch('https://ranky-api.pages.dev/api/api', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -681,7 +681,7 @@
             }
         };
 
-        // Manejador de advertencia para links externos (Facebook/Twitter)
+        // Manejador de advertencia para links externos
         let pendingWarningUrl = null;
         function openWarning(url, displayUrl) {
             pendingWarningUrl = url;
@@ -724,16 +724,16 @@
             pendingWarningUrl = null;
         }
 
-        // --- Event Listeners y Configuración Inicial ---
+        // --- Event Listeners ---
         window.onload = () => {
+            // Detectar idioma del navegador
+            if (navigator.language.startsWith('es')) {
+                currentLang = 'es';
+            }
             updateContent();
             
-            // Configurar botones con verificación
+            // Botón Twitter Quasvx
             const twitterBtn = document.getElementById('btn-twitter');
-            const facebookBtn = document.getElementById('btn-facebook');
-            const verifyCancel = document.getElementById('verify-cancel');
-            const warningCancel = document.getElementById('warning-cancel');
-            
             if (twitterBtn) {
                 twitterBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -741,21 +741,24 @@
                 });
             }
             
-            if (facebookBtn) {
-                facebookBtn.addEventListener('click', (e) => {
+            // Botón Twitter Pikapi
+            const pikapiBtn = document.getElementById('btn-pikapi');
+            if (pikapiBtn) {
+                pikapiBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     openWarning('https://x.com/pikachukawaiix5', 'x.com/pikachukawaiix5');
                 });
             }
             
+            const verifyCancel = document.getElementById('verify-cancel');
             if (verifyCancel) {
                 verifyCancel.addEventListener('click', () => verifyManager.closeVerification());
             }
+            
+            const warningCancel = document.getElementById('warning-cancel');
             if (warningCancel) {
                 warningCancel.addEventListener('click', () => closeWarning());
             }
-            
-            // Nota: Los enlaces normales (/discord, /rankyqr, donate, gamebanana) no tienen verificación extra.
         };
     </script>
 </body>
