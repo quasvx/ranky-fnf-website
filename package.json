@@ -1,0 +1,20 @@
+{
+  "name": "ranky",
+  "version": "1.0.0",
+  "description": "Ranky Website - Cloudflare Edition",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quasvx/Ranky-Website.git"
+  },
+  "dependencies": {
+    "@upstash/ratelimit": "^1.2.1",
+    "@upstash/redis": "^1.37.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

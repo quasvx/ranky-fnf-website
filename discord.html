@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+    <meta name="description" content="The official discord server for the FNF Mod named Ranky. | 7 miembros" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@discord" />
+    <meta name="twitter:title" content="¡Únete al servidor de Discord 𝚁𝐚𝚗𝐤𝚢 𝐒𝚎𝐫𝚟𝐞𝚛!" />
+    <meta name="twitter:description" content="The official discord server for the FNF Mod named Ranky. | 7 miembros" />
+    <meta property="og:title" content="¡Únete al servidor de Discord 𝚁𝐚𝚗𝐤𝚢 𝐒𝚎𝐫𝚟𝐞𝚛!" />
+    <meta property="og:url" content="https://ranky.pages.dev/discord" />
+    <meta property="og:description" content="The official discord server for the FNF Mod named Ranky. | 7 miembros" />
+    <meta property="og:site_name" content="Discord" />
+    <link rel="icon" type="image/png" href="https://ranky.pages.dev/discord.png">
+    <link rel="canonical" href="https://ranky.pages.dev/discord" />
+    <title>𝚁𝐚𝚗𝐤𝚢 𝐒𝚎𝐫𝚟𝐞𝚛</title>
+    <style>
+        /* ESTILO IDÉNTICO AL HTML DE DISCORD ORIGINAL */
+        body {
+            background-color: #020617;
+            color: #ffffff;
+            font-family: 'gg sans', 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .loader-container {
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .loader {
+            border: 4px solid #1e293b;
+            border-top: 4px solid #5865F2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .btn-manual {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #5865F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background-color 0.2s, transform 0.2s;
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .btn-manual:hover {
+            background-color: #4752c4;
+            transform: translateY(-2px);
+        }
+
+        .btn-manual:active {
+            transform: translateY(0);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .subtext {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader-container">
+        <div class="loader"></div>
+        <div class="text">Uniéndose a 𝚁𝐚𝚗𝐤𝚢 𝐒𝚎𝐫𝚟𝐞𝚛 en Discord...</div>
+
+        <a href="https://discord.gg/3Hmba8Xbvw" class="btn-manual">
+            Haz clic aquí si no eres redirigido
+        </a>
+
+        <div class="subtext">
+            ¿Demora demasiado? Usa el botón de arriba.
+        </div>
+    </div>
+
+    <script>
+        // REDIRECCIÓN DIRECTA A DISCORD.GG/3Hmba8Xbvw
+        const discordURL = "https://discord.gg/3Hmba8Xbvw";
+        const delay = 2000; // 1 segundo exacto
+
+        setTimeout(() => {
+            window.location.href = discordURL;
+        }, delay);
+    </script>
+
+</body>
+</html>
