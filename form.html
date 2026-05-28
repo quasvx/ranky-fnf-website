@@ -478,6 +478,8 @@
         let recaptchaSitekey = "";
         let turnstileAttempts = 0;
         let recaptchaAttempts = 0;
+        let turnstileCheckInterval = null;
+        let turnstileCheckCount = 0;
 
         function updateStatus(msg, type) {
             const div = document.getElementById('captchaStatus');
@@ -491,6 +493,7 @@
             document.getElementById('submitBtn').disabled = true;
             document.getElementById('turnstileContainer').style.display = 'none';
             document.getElementById('recaptchaContainer').style.display = 'none';
+            if (turnstileCheckInterval) clearInterval(turnstileCheckInterval);
         }
 
         async function banIP() {
@@ -504,8 +507,56 @@
             showBlocked();
         }
 
+        // Detectar si Turnstile está atascado (iframe no responde)
+        function startTurnstileWatcher() {
+            if (turnstileCheckInterval) clearInterval(turnstileCheckInterval);
+            turnstileCheckCount = 0;
+            
+            turnstileCheckInterval = setInterval(() => {
+                if (currentStage !== 'turnstile') {
+                    clearInterval(turnstileCheckInterval);
+                    return;
+                }
+                if (isBlocked) {
+                    clearInterval(turnstileCheckInterval);
+                    return;
+                }
+                
+                turnstileCheckCount++;
+                const iframe = document.querySelector('#turnstileContainer iframe');
+                
+                // Si después de 15 segundos no hay iframe o no hay token, considerar error
+                if (turnstileCheckCount > 15 && !captchaToken) {
+                    console.log('[Watcher] Turnstile parece atascado, forzando error');
+                    clearInterval(turnstileCheckInterval);
+                    forceTurnstileError();
+                }
+            }, 1000);
+        }
+        
+        function forceTurnstileError() {
+            if (currentStage !== 'turnstile') return;
+            if (isBlocked) return;
+            if (captchaToken) return;
+            
+            turnstileAttempts++;
+            updateStatus(`❌ Turnstile sin respuesta (${turnstileAttempts}/3)`, 'error');
+            
+            if (turnstileAttempts >= 3) {
+                updateStatus('🔄 Cambiando a reCAPTCHA...', 'warning');
+                switchToRecaptcha();
+            } else {
+                if (turnstileWidget) {
+                    try { turnstile.reset(turnstileWidget); } catch(e) {}
+                }
+                renderTurnstile();
+                startTurnstileWatcher();
+            }
+        }
+
         async function turnstileSuccess(token) {
             if (isBlocked) return;
+            if (turnstileCheckInterval) clearInterval(turnstileCheckInterval);
             
             updateStatus('Verificando...', 'warning');
             
@@ -542,6 +593,7 @@
                             if (turnstileWidget) turnstile.reset(turnstileWidget);
                             document.getElementById('submitBtn').disabled = true;
                             captchaToken = null;
+                            startTurnstileWatcher();
                         }
                     }
                 }
@@ -554,12 +606,14 @@
                 } else {
                     if (turnstileWidget) turnstile.reset(turnstileWidget);
                     captchaToken = null;
+                    startTurnstileWatcher();
                 }
             }
         }
 
         function turnstileError(error) {
             console.error('Turnstile error:', error);
+            if (turnstileCheckInterval) clearInterval(turnstileCheckInterval);
             turnstileAttempts++;
             updateStatus(`❌ Error Turnstile (${turnstileAttempts}/3)`, 'error');
             if (turnstileAttempts >= 3) {
@@ -567,6 +621,7 @@
             } else {
                 if (turnstileWidget) turnstile.reset(turnstileWidget);
                 captchaToken = null;
+                startTurnstileWatcher();
             }
         }
 
@@ -586,12 +641,17 @@
                     captchaToken = null;
                     document.getElementById('submitBtn').disabled = true;
                     updateStatus('Captcha expirado', 'error');
+                    startTurnstileWatcher();
                 }
             });
         }
 
+        // reCAPTCHA con detección de error por timeout
+        let recaptchaTimeout = null;
+        
         async function recaptchaSuccess(token) {
             if (isBlocked) return;
+            if (recaptchaTimeout) clearTimeout(recaptchaTimeout);
             
             updateStatus('Verificando reCAPTCHA...', 'warning');
             
@@ -627,6 +687,7 @@
                             if (recaptchaWidget) grecaptcha.reset(recaptchaWidget);
                             document.getElementById('submitBtn').disabled = true;
                             captchaToken = null;
+                            startRecaptchaWatcher();
                         }
                     }
                 }
@@ -639,12 +700,31 @@
                 } else {
                     if (recaptchaWidget) grecaptcha.reset(recaptchaWidget);
                     captchaToken = null;
+                    startRecaptchaWatcher();
                 }
             }
+        }
+        
+        function startRecaptchaWatcher() {
+            if (recaptchaTimeout) clearTimeout(recaptchaTimeout);
+            recaptchaTimeout = setTimeout(() => {
+                if (currentStage === 'recaptcha' && !captchaToken && !isBlocked) {
+                    console.log('[Watcher] reCAPTCHA sin respuesta, forzando error');
+                    recaptchaAttempts++;
+                    updateStatus(`❌ reCAPTCHA sin respuesta (${recaptchaAttempts}/2)`, 'error');
+                    if (recaptchaAttempts >= 2) {
+                        banIP();
+                    } else {
+                        if (recaptchaWidget) grecaptcha.reset(recaptchaWidget);
+                        startRecaptchaWatcher();
+                    }
+                }
+            }, 15000);
         }
 
         function switchToRecaptcha() {
             if (currentStage === 'recaptcha') return;
+            if (turnstileCheckInterval) clearInterval(turnstileCheckInterval);
             currentStage = 'recaptcha';
             document.getElementById('turnstileContainer').style.display = 'none';
             document.getElementById('recaptchaContainer').style.display = 'flex';
@@ -657,8 +737,10 @@
                         captchaToken = null;
                         document.getElementById('submitBtn').disabled = true;
                         updateStatus('reCAPTCHA expirado', 'error');
+                        startRecaptchaWatcher();
                     }
                 });
+                startRecaptchaWatcher();
             } else {
                 updateStatus('Error cargando reCAPTCHA', 'error');
                 setTimeout(() => switchToRecaptcha(), 1000);
@@ -675,6 +757,7 @@
             document.getElementById('turnstileContainer').style.display = 'flex';
             document.getElementById('recaptchaContainer').style.display = 'none';
             renderTurnstile();
+            startTurnstileWatcher();
         }
 
         async function loadConfig() {
