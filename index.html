@@ -1,872 +1,323 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Ranky Form | Staff Application</title>
-    <link rel="icon" href="/formulary.ico" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Ranky - The Ultimate FNF Visual Mod</title>
+    <meta name="description" content="Enhance your Friday Night Funkin experience with Ranky. A high-performance V-Slice mod featuring dynamic accuracy scaling and RGB BPM synchronization.">
+    <meta name="keywords" content="FNF Mod, Friday Night Funkin, Ranky Mod, V-Slice, Gaming, Rhythm Game">
+    <meta name="author" content="Ranky Team">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ranky - Visual Grading Experience">
+    <meta property="og:description" content="Native .hxc architecture for FNF. Get real-time feedback on your performance.">
+    <meta property="og:image" content="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
+    <meta property="og:url" content="https://rankyfnf.cc.cd">
+    <meta property="og:site_name" content="Ranky Mod">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranky Mod">
+    <meta name="twitter:description" content="The most advanced visual grading mod for FNF.">
+    <meta name="twitter:image" content="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
+
+    <link rel="icon" type="image/jpeg" href="https://rankyfnf.cc.cd/rankylogoalt.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --border-light: #e2e8f0;
-            --border-focus: #3b82f6;
-            --accent: #3b82f6;
-            --accent-soft: #dbeafe;
-            --hero-bg: #f8fafc;
-            --input-bg: #ffffff;
-            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
-            --btn-bg: #1e293b;
-            --btn-hover: #0f172a;
-            --captcha-bg: #f8fafc;
-            --sidebar-bg: rgba(255, 255, 255, 0.98);
-            --overlay: rgba(0, 0, 0, 0.25);
-            --error: #dc2626;
-            --success: #22c55e;
-            --warning: #f59e0b;
+            --primary: #0084ff;
+            --accent: #00f2ff;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --warn: #ffaa44;
+            --success: #00ff88;
         }
-        body.dark {
-            --bg-body: #0f172a;
-            --bg-card: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border-light: #334155;
-            --border-focus: #60a5fa;
-            --accent: #60a5fa;
-            --accent-soft: #1e293b;
-            --hero-bg: #111827;
-            --input-bg: #0f172a;
-            --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
-            --btn-bg: #334155;
-            --btn-hover: #475569;
-            --captcha-bg: #0f172a;
-            --sidebar-bg: rgba(30, 41, 59, 0.98);
-            --overlay: rgba(0, 0, 0, 0.5);
-        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-body);
-            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-dark);
+            background: radial-gradient(circle at top right, #004488 0%, #050505 50%, #002244 100%);
             min-height: 100vh;
-            padding: 2rem 1rem;
-            transition: all 0.2s ease;
-        }
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .main-card {
-            background: var(--bg-card);
-            border-radius: 1.75rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-light);
-            overflow: hidden;
-            animation: fadeSlideUp 0.6s ease forwards;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .hero-section {
-            background: var(--hero-bg);
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-light);
-        }
-        .hero-section h1 {
-            font-weight: 700;
-            font-size: clamp(1.8rem, 5vw, 2.5rem);
-            color: var(--text-primary);
-        }
-        .hero-section p {
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            margin-top: 0.5rem;
-        }
-        .section-label {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-secondary);
-            border-left: 3px solid var(--accent);
-            padding-left: 0.9rem;
-            margin: 2rem 0 1.5rem 0;
-        }
-        .form-label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        .form-control, .form-select {
-            background: var(--input-bg);
-            border: 1.5px solid var(--border-light);
-            border-radius: 1rem;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            transition: all 0.2s;
-            width: 100%;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            outline: none;
-        }
-        .btn-submit {
-            background: var(--btn-bg);
-            border: none;
-            padding: 0.9rem;
-            border-radius: 2rem;
-            font-weight: 700;
-            font-size: 1rem;
             color: white;
-            transition: all 0.2s;
-            width: 100%;
-            margin-top: 2rem;
-            cursor: pointer;
-        }
-        .btn-submit:hover:not(:disabled) {
-            background: var(--btn-hover);
-            transform: translateY(-2px);
-        }
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .captcha-box {
-            background: var(--captcha-bg);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            border: 1px solid var(--border-light);
-            text-align: center;
-        }
-        .captcha-canvas {
-            background: #1a1a2e;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            cursor: pointer;
-        }
-        canvas {
-            background: #2d2d44;
-            border-radius: 0.5rem;
-            display: block;
-            margin: 0 auto;
-        }
-        .captcha-input {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .captcha-input input {
-            width: 150px;
-            text-align: center;
-            letter-spacing: 4px;
-            font-size: 1.2rem;
-        }
-        .captcha-refresh {
-            background: var(--accent-soft);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        .captcha-status {
-            margin-top: 0.75rem;
-            font-size: 0.8rem;
-        }
-        .captcha-status.success { color: var(--success); }
-        .captcha-status.error { color: var(--error); }
-        .captcha-status.warning { color: var(--warning); }
-        .menu-corner {
-            position: fixed;
-            top: 1.2rem;
-            left: 1.2rem;
-            z-index: 1050;
-        }
-        .menu-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            padding: 0.6rem 1.4rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .menu-btn:hover {
-            background: var(--accent-soft);
-            border-color: var(--accent);
-        }
-        .sidebar-menu {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 300px;
-            height: 100%;
-            background: var(--sidebar-bg);
-            backdrop-filter: blur(20px);
-            z-index: 1060;
-            transition: left 0.3s;
-            padding: 2rem 1.5rem;
-            border-right: 1px solid var(--border-light);
+            padding: 60px 20px;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-        }
-        .sidebar-menu.open { left: 0; }
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--overlay);
-            backdrop-filter: blur(3px);
-            z-index: 1055;
-            visibility: hidden;
-            opacity: 0;
-            transition: 0.2s;
-        }
-        .menu-overlay.active { visibility: visible; opacity: 1; }
-        .close-sidebar {
-            background: none;
-            border: none;
-            font-size: 1.6rem;
-            align-self: flex-end;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-        .menu-title {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 0.5rem;
-        }
-        .menu-item {
-            padding: 0.7rem 0;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: 0.15s;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
             align-items: center;
-            gap: 12px;
         }
-        .menu-item:hover { color: var(--accent); transform: translateX(6px); }
-        .external-btn {
-            background: var(--input-bg);
-            border: 1px solid var(--border-light);
-            padding: 0.7rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            color: var(--text-primary);
+
+        .lang-switcher {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
         }
-        .lang-row {
-            display: flex;
-            gap: 12px;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border-light);
+
+        .lang-btn {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            color: white; padding: 8px 15px; border-radius: 12px;
+            cursor: pointer; font-weight: 800; backdrop-filter: blur(10px);
+            transition: 0.3s;
         }
-        .lang-row button {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--border-light);
-            padding: 0.6rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .theme-switch-inline {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--input-bg);
-            padding: 0.7rem 1rem;
-            border-radius: 3rem;
-            border: 1px solid var(--border-light);
+
+        .container {
+            width: 100%; max-width: 500px; text-align: center;
+            animation: fadeInUp 0.8s ease-out;
         }
-        .toggle-switch {
-            width: 48px;
-            height: 24px;
-            background: var(--border-light);
-            border-radius: 50px;
-            position: relative;
-            cursor: pointer;
+
+        .profile-container {
+            position: relative; display: inline-block; margin-bottom: 20px;
         }
-        .toggle-switch::after {
-            content: "";
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            transition: 0.2s;
+
+        .profile-img {
+            width: 130px; height: 130px; border-radius: 40px;
+            object-fit: cover; border: 2px solid var(--glass-border);
+            position: relative; z-index: 2;
         }
-        body.dark .toggle-switch::after { left: 25px; background: #0f172a; }
-        .credits-footer {
-            font-size: 0.7rem;
-            text-align: center;
-            color: var(--text-muted);
-            margin-top: 0.5rem;
+
+        .profile-glow {
+            position: absolute; inset: 0; background: var(--primary);
+            filter: blur(30px); opacity: 0.4; z-index: 1;
         }
-        #successModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(12px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
+
+        h1 {
+            font-size: 3.2rem; font-weight: 800; margin-bottom: 10px;
+            background: linear-gradient(to bottom, #ffffff, #888888);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
-        .modal-card {
-            background: var(--bg-card);
-            max-width: 450px;
-            width: 90%;
-            border-radius: 1.75rem;
-            padding: 2rem;
-            text-align: center;
+
+        #video-container {
+            display: none; width: 100%; margin-bottom: 20px;
+            border-radius: 20px; overflow: hidden;
+            border: 1px solid var(--glass-border);
+            aspect-ratio: 16 / 9; background: #000;
         }
-        .row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-        .col-md-6 { flex: 1; min-width: calc(50% - 0.5rem); }
-        .col-md-4 { flex: 1; min-width: calc(33.33% - 0.66rem); }
-        .col-12 { width: 100%; }
-        @media (max-width: 640px) {
-            body { padding: 1rem; }
-            .col-md-6, .col-md-4 { min-width: 100%; }
+
+        .features-box {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 25px; margin-bottom: 35px;
+            text-align: left; backdrop-filter: blur(10px);
+        }
+
+        .features-box h3 {
+            color: var(--accent); font-size: 1.3rem;
+            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+
+        .feature-item { margin-bottom: 15px; }
+        .feature-title { 
+            display: block; font-weight: 800; font-size: 0.9rem; 
+            text-transform: uppercase; color: var(--primary); margin-bottom: 4px;
+        }
+        .feature-desc { font-size: 0.9rem; color: #bbb; line-height: 1.4; }
+
+        .links-container { display: flex; flex-direction: column; gap: 15px; }
+
+        .link-btn {
+            background: var(--glass); backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border); color: white;
+            text-decoration: none; padding: 18px; border-radius: 20px;
+            font-weight: 700; font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            text-transform: uppercase; cursor: pointer;
+        }
+
+        .link-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--btn-color, var(--primary));
+            box-shadow: 0 0 20px var(--btn-glow, rgba(0, 132, 255, 0.3));
+        }
+
+        .btn-preview { --btn-color: #ff0000; --btn-glow: rgba(255, 0, 0, 0.4); margin-bottom: 10px; }
+        .btn-download { --btn-color: var(--accent); --btn-glow: rgba(0, 242, 255, 0.4); }
+        .btn-collab { --btn-color: var(--success); --btn-glow: rgba(0, 255, 136, 0.3); }
+        .btn-donate { --btn-color: var(--warn); --btn-glow: rgba(255, 170, 68, 0.3); }
+        .btn-twitter { --btn-color: #1DA1F2; --btn-glow: #1DA1F2; }
+
+        .btn-icon { width: 26px; height: 26px; object-fit: contain; }
+
+        .footer-img { 
+            width: 200px; height: auto; margin-top: 40px; 
+            border-radius: 30px; border: 1px solid var(--glass-border);
+            pointer-events: none;
+        }
+
+        .bg-blob {
+            position: fixed; width: 500px; height: 500px; background: var(--primary);
+            filter: blur(120px); opacity: 0.1; z-index: -1; border-radius: 50%;
         }
     </style>
 </head>
 <body>
-    <div class="menu-corner">
-        <button class="menu-btn" id="menuBtn">☰ Menú</button>
-    </div>
-    <div class="sidebar-menu" id="sidebar">
-        <button class="close-sidebar" id="closeSidebarBtn">✕</button>
-        <div class="menu-title" id="menuTitle">Menú</div>
-        <div class="menu-item" id="backToRootItem">🏠 Volver al Inicio</div>
-        <div class="external-link">
-            <a href="https://www.quasvx.cc.cd" target="_blank" class="external-btn">⚡ Quasvx</a>
-        </div>
-        <div class="theme-switch-inline">
-            <span id="themeLabel">🌙 Modo oscuro</span>
-            <div class="toggle-switch" id="themeToggle"></div>
-        </div>
-        <div class="lang-row">
-            <button id="langEsBtn">🇪🇸 ES</button>
-            <button id="langEnBtn">🇬🇧 EN</button>
-        </div>
-        <div class="credits-footer" id="footerCredits">Ranky Form • Staff Application</div>
-    </div>
-    <div class="menu-overlay" id="menuOverlay"></div>
 
-    <div class="main-card">
-        <div class="hero-section">
-            <h1 id="title">Ranky Form</h1>
-            <p id="subtitle">Staff Application 2026</p>
-        </div>
-        <div style="padding: 2rem;">
-            <form id="applicationForm">
-                <div class="section-label" id="sec1">📋 01. Datos personales</div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label" id="lDiscord">Discord *</label>
-                        <input type="text" id="discord" class="form-control" placeholder="usuario#0000" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" id="lEmail">Correo electrónico *</label>
-                        <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
-                    </div>
-                </div>
-                <div class="section-label" id="sec2">🛠️ 02. Perfil profesional</div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label" id="lRole">Rol principal *</label>
-                        <select id="role" class="form-select" required>
-                            <option value="" disabled selected id="optSelect">Seleccionar</option>
-                            <option value="Coder" id="optCoder">Desarrollador/a</option>
-                            <option value="Artist" id="optArtist">Artista gráfico</option>
-                            <option value="Musician" id="optMusic">Compositor/a</option>
-                            <option value="Charter" id="optChart">Charter</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" id="lTools">Herramientas principales *</label>
-                        <input type="text" id="software" class="form-control" placeholder="Ej: Figma, Unity, FL Studio" required>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label" id="lAge">Edad *</label>
-                        <input type="number" id="age" class="form-control" min="13" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" id="lHours">Horas semanales *</label>
-                        <input type="number" id="hours" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" id="lSkill">Nivel (0-100) *</label>
-                        <input type="number" id="skill" class="form-control" min="0" max="100" required>
-                    </div>
-                </div>
-                <div class="section-label" id="sec3">✨ 03. Motivación y experiencia</div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="form-label" id="lPortfolio">Portafolio / GitHub / GameBanana *</label>
-                        <input type="text" id="portfolio" class="form-control" required>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="form-label" id="lExperience">Experiencia previa *</label>
-                        <textarea id="experience" class="form-control" rows="2" required></textarea>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="form-label" id="lMotivation">¿Por qué quieres unirte? *</label>
-                        <textarea id="motivation" class="form-control" rows="3" required></textarea>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="form-label" id="lConflict">Ejemplo de resolución de conflictos *</label>
-                        <textarea id="conflict" class="form-control" rows="2" required></textarea>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="form-label" id="lFuture">Meta a 1 año *</label>
-                        <textarea id="future" class="form-control" rows="2" required></textarea>
-                    </div>
-                </div>
-
-                <!-- CAPTCHA SIMPLE DE 4 LETRAS CON BANEO -->
-                <div class="captcha-box">
-                    <label class="form-label" id="verifyLabel">🔐 Verificación de seguridad</label>
-                    <div class="captcha-canvas" id="captchaCanvas" title="Haz clic para actualizar">
-                        <canvas id="captchaImage" width="200" height="60"></canvas>
-                    </div>
-                    <div class="captcha-input">
-                        <input type="text" id="captchaInput" class="form-control" placeholder="Ingresa el código" maxlength="4" autocomplete="off">
-                        <button type="button" id="refreshCaptcha" class="captcha-refresh">⟳ Actualizar</button>
-                    </div>
-                    <div id="captchaStatus" class="captcha-status"></div>
-                </div>
-                <div id="securityAlert" style="color:var(--error); font-size:0.85rem; margin-top:1rem; display:none; text-align:center;"></div>
-                <button type="submit" class="btn-submit" id="submitBtn">📤 Enviar solicitud</button>
-            </form>
-        </div>
+    <div class="lang-switcher">
+        <button class="lang-btn" onclick="toggleLang()" id="btn-lang">EN</button>
     </div>
-    <div id="successModal">
-        <div class="modal-card">
-            <div style="font-size:3rem;">✅</div>
-            <h3 id="modalTitle">Solicitud enviada</h3>
-            <div id="modalMessage"></div>
-            <button onclick="closeSuccessModal()" class="btn-submit" style="margin-top:1rem;">Cerrar</button>
+
+    <div class="bg-blob" style="top: -200px; left: -200px;"></div>
+    <div class="bg-blob" style="bottom: -200px; right: -200px;"></div>
+
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-glow"></div>
+            <img src="https://rankyfnf.cc.cd/rankylogoalt.jpeg" alt="Ranky Logo" class="profile-img">
         </div>
+
+        <h1>Ranky</h1>
+        <p id="main-sub" style="color: #888; margin-bottom: 25px; font-weight: 600;">The Ultimate Visual Grading Experience</p>
+
+        <button onclick="toggleVideo()" class="link-btn btn-preview" style="width: 100%;">
+            <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=128" alt="" class="btn-icon">
+            <span id="b0">View what the mod does</span>
+        </button>
+
+        <div id="video-container">
+            <iframe id="yt-player" width="100%" height="100%" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+
+        <div class="features-box">
+            <h3 id="feat-title">✨ Project Intelligence</h3>
+            <div class="feature-item">
+                <span class="feature-title" id="t1">Native .hxc Architecture</span>
+                <p class="feature-desc" id="d1">Built as a high-performance V-Slice module. Zero lag and deep engine integration.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-title" id="t2">Dynamic Accuracy Scaling</span>
+                <p class="feature-desc" id="d2">Real-time visual feedback based on your hit-window precision.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-title" id="t3">RGB BPM-Sync System</span>
+                <p class="feature-desc" id="d3">Immersive visual effects that pulse with the song's tempo.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-title" id="t4">Adaptive Interface (HUD)</span>
+                <p class="feature-desc" id="d4">Smart positioning for Middlescroll and Downscroll layouts.</p>
+            </div>
+        </div>
+
+        <div class="links-container">
+            <a href="/discord" class="link-btn">
+                <img src="https://www.google.com/s2/favicons?domain=discord.com&sz=128" alt="" class="btn-icon">
+                <span id="b_discord">Discord Community</span>
+            </a>
+            
+            <a href="/rankyqr" class="link-btn">
+                <img src="https://rankyfnf.cc.cd/rankyqr.ico" alt="" class="btn-icon" onerror="this.src='https://www.google.com/s2/favicons?domain=rankyfnf.cc.cd&sz=128'">
+                <span id="b_qr">RankyQR Tool</span>
+            </a>
+
+            <a href="https://pay.blink.sv/quasvx" target="_blank" class="link-btn btn-donate">
+                <img src="https://www.google.com/s2/favicons?domain=blink.sv&sz=128" alt="" class="btn-icon">
+                <span id="b_donate">Support the Creators (BTC Lightning)</span>
+            </a>
+
+            <a href="https://x.com/quasvx" target="_blank" class="link-btn btn-twitter">
+                <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
+                <span id="b_twitter">Twitter: Quasvx</span>
+            </a>
+
+            <a href="https://x.com/pikachukawaiix5" target="_blank" class="link-btn btn-twitter">
+                <img src="https://www.google.com/s2/favicons?domain=x.com&sz=128" alt="" class="btn-icon">
+                <span id="b_pikapi">Twitter: Pikapi</span>
+            </a>
+
+            <a href="https://gamebanana.com/mods/638963" target="_blank" class="link-btn btn-download">
+                <img src="https://www.google.com/s2/favicons?domain=gamebanana.com&sz=128" alt="" class="btn-icon">
+                <span id="b1">Download Official Mod</span>
+            </a>
+            
+            <a href="https://rankyfnf.cc.cd/form" class="link-btn btn-collab">
+                <img src="https://rankyfnf.cc.cd/formulary.ico" alt="" class="btn-icon">
+                <span id="b3">Register for Collab</span>
+            </a>
+        </div>
+
+        <img src="https://rankyfnf.cc.cd/rankyicon.png" alt="Ranky Icon" class="footer-img">
     </div>
 
     <script>
-        const API_URL = 'https://ranky-api.pages.dev/api/api';
-        
-        function setCookie(name, value, days = 365) {
-            let expires = "";
-            if (days) {
-                const d = new Date();
-                d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-                expires = "; expires=" + d.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
-        }
-        function getCookie(name) {
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : null;
-        }
-
-        // ========== CAPTCHA CON BANEO ==========
-        let currentCaptchaCode = '';
-        let captchaFailCount = 0;
-        let isBanned = false;
-        let banCheckDone = false;
-        
-        async function checkBanStatus() {
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'checkBan' })
-                });
-                const data = await res.json();
-                if (data.blocked) {
-                    isBanned = true;
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('captchaInput').disabled = true;
-                    document.getElementById('refreshCaptcha').disabled = true;
-                    document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
-                    document.getElementById('captchaStatus').className = 'captcha-status error';
-                }
-            } catch(e) { console.error('Error checking ban:', e); }
-            banCheckDone = true;
-        }
-        
-        async function recordCaptchaFail() {
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'captchaFail' })
-                });
-            } catch(e) { console.error('Error recording fail:', e); }
-        }
-        
-        function generateRandomCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-            let result = '';
-            for (let i = 0; i < 4; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-        
-        function drawDistortedText(code) {
-            const canvas = document.getElementById('captchaImage');
-            const ctx = canvas.getContext('2d');
-            const width = 200;
-            const height = 60;
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            ctx.fillStyle = '#2d2d44';
-            ctx.fillRect(0, 0, width, height);
-            
-            for (let i = 0; i < 8; i++) {
-                ctx.beginPath();
-                ctx.moveTo(Math.random() * width, Math.random() * height);
-                ctx.lineTo(Math.random() * width, Math.random() * height);
-                ctx.strokeStyle = `rgba(100, 100, 150, ${Math.random() * 0.5})`;
-                ctx.stroke();
-            }
-            
-            for (let i = 0; i < 100; i++) {
-                ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.6})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
-            }
-            
-            const chars = code.split('');
-            const startX = 25;
-            const startY = 40;
-            
-            chars.forEach((char, index) => {
-                const x = startX + (index * 38);
-                const y = startY + (Math.random() * 8 - 4);
-                const rotation = (Math.random() - 0.5) * 0.4;
-                
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(rotation);
-                ctx.font = `bold ${32 + Math.random() * 6}px "Courier New", monospace`;
-                ctx.fillStyle = `hsl(${40 + Math.random() * 40}, 70%, 60%)`;
-                ctx.fillText(char, 0, 0);
-                ctx.restore();
-            });
-            
-            for (let i = 0; i < 60; i++) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.4})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 2, 1);
-            }
-        }
-        
-        function refreshCaptcha() {
-            if (isBanned) return;
-            currentCaptchaCode = generateRandomCode();
-            drawDistortedText(currentCaptchaCode);
-            document.getElementById('captchaInput').value = '';
-        }
-        
-        async function verifyCaptcha() {
-            if (isBanned) {
-                document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
-                document.getElementById('captchaStatus').className = 'captcha-status error';
-                return false;
-            }
-            
-            const userInput = document.getElementById('captchaInput').value.trim();
-            if (!userInput) {
-                document.getElementById('captchaStatus').innerHTML = '❌ Ingresa el código';
-                document.getElementById('captchaStatus').className = 'captcha-status error';
-                return false;
-            }
-            if (userInput !== currentCaptchaCode) {
-                captchaFailCount++;
-                document.getElementById('captchaStatus').innerHTML = `❌ Código incorrecto (${captchaFailCount}/5)`;
-                document.getElementById('captchaStatus').className = 'captcha-status error';
-                refreshCaptcha();
-                
-                if (captchaFailCount >= 5) {
-                    await recordCaptchaFail();
-                    isBanned = true;
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('captchaInput').disabled = true;
-                    document.getElementById('refreshCaptcha').disabled = true;
-                    document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
-                    document.getElementById('captchaStatus').className = 'captcha-status error';
-                    return false;
-                }
-                return false;
-            }
-            
-            captchaFailCount = 0;
-            document.getElementById('captchaStatus').innerHTML = '✅ Verificado';
-            document.getElementById('captchaStatus').className = 'captcha-status success';
-            return true;
-        }
-
-        // ========== TEMA Y TRADUCCIONES ==========
-        function initTheme() {
-            const saved = getCookie('ranky_theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = saved || (prefersDark ? 'dark' : 'light');
-            if (theme === 'dark') document.body.classList.add('dark');
-            else document.body.classList.remove('dark');
-        }
-        function toggleTheme() {
-            if (document.body.classList.contains('dark')) {
-                document.body.classList.remove('dark');
-                setCookie('ranky_theme', 'light');
-            } else {
-                document.body.classList.add('dark');
-                setCookie('ranky_theme', 'dark');
-            }
-        }
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-        const texts = {
+        let currentLang = 'en';
+        const translations = {
             en: {
-                menuTitle: "Menu", backToRoot: "🏠 Back to Root", themeLabel: "🌙 Dark mode",
-                footer: "Ranky Form • Staff Application",
-                title: "Ranky Form", subtitle: "Staff Application 2026",
-                sec1: "📋 01. Personal info", sec2: "🛠️ 02. Professional profile", sec3: "✨ 03. Motivation & experience",
-                lDiscord: "Discord *", lEmail: "Email *", lRole: "Main role *", optSelect: "Select",
-                optCoder: "Developer", optArtist: "Graphic Artist", optMusic: "Composer", optChart: "Charter",
-                lTools: "Main tools *", lAge: "Age *", lHours: "Weekly hours *", lSkill: "Skill level (0-100) *",
-                lPortfolio: "Portfolio / GitHub / GameBanana *", lExperience: "Previous experience *",
-                lMotivation: "Why join us? *", lConflict: "Conflict resolution *", lFuture: "1-year goal *",
-                verifyLabel: "🔐 Security verification", submitBtn: "📤 Submit application",
-                modalTitle: "Application sent", modalTextValid: "We will contact you from:",
-                modalTextInvalid: "⚠️ Invalid email. We cannot contact you.", contactEmail: "quasvx@outlook.es",
-                errors: { mouse: "Move your mouse first.", speed: "Too fast. Wait.", paste: "Avoid excessive pasting." }
+                sub: "The Ultimate Visual Grading Experience",
+                feat: "✨ Project Intelligence",
+                t1: "Native .hxc Architecture", d1: "Built as a high-performance V-Slice module. Zero lag and deep engine integration.",
+                t2: "Dynamic Accuracy Scaling", d2: "Real-time visual feedback based on your hit-window precision.",
+                t3: "RGB BPM-Sync System", d3: "Immersive visual effects that pulse with the song's tempo.",
+                t4: "Adaptive Interface (HUD)", d4: "Smart positioning for Middlescroll and Downscroll layouts.",
+                b0: "View what the mod does", b1: "Download Official Mod", b3: "Register for Collab", 
+                b_donate: "Support the Creators (BTC Lightning)",
+                b_discord: "Discord Community", b_qr: "RankyQR Tool", 
+                b_twitter: "Twitter: Quasvx", b_pikapi: "Twitter: Pikapi"
             },
             es: {
-                menuTitle: "Menú", backToRoot: "🏠 Volver al Inicio", themeLabel: "🌙 Modo oscuro",
-                footer: "Ranky Form • Solicitud de Staff",
-                title: "Ranky Form", subtitle: "Solicitud de Staff 2026",
-                sec1: "📋 01. Datos personales", sec2: "🛠️ 02. Perfil profesional", sec3: "✨ 03. Motivación y experiencia",
-                lDiscord: "Discord *", lEmail: "Correo *", lRole: "Rol principal *", optSelect: "Seleccionar",
-                optCoder: "Desarrollador/a", optArtist: "Artista gráfico", optMusic: "Compositor/a", optChart: "Charter",
-                lTools: "Herramientas *", lAge: "Edad *", lHours: "Horas semanales *", lSkill: "Nivel (0-100) *",
-                lPortfolio: "Portafolio / GitHub / GameBanana *", lExperience: "Experiencia previa *",
-                lMotivation: "¿Por qué unirte? *", lConflict: "Resolver conflictos *", lFuture: "Meta a 1 año *",
-                verifyLabel: "🔐 Verificación", submitBtn: "📤 Enviar solicitud",
-                modalTitle: "Solicitud enviada", modalTextValid: "Te contactaremos desde:",
-                modalTextInvalid: "⚠️ Email inválido. No podemos contactarte.", contactEmail: "quasvx@outlook.es",
-                errors: { mouse: "Mueve el ratón primero.", speed: "Demasiado rápido. Espera.", paste: "Evita pegar en exceso." }
+                sub: "La experiencia definitiva de calificación visual",
+                feat: "✨ Inteligencia del Proyecto",
+                t1: "Arquitectura Nativa .hxc", d1: "Módulo de alto rendimiento para V-Slice. Sin lag e integración profunda.",
+                t2: "Escalado Dinámico", d2: "Feedback visual en tiempo real según tu precisión.",
+                t3: "Sistema RGB Sincronizado", d3: "Efectos visuales que vibran al tempo de la canción.",
+                t4: "Interfaz Adaptable (HUD)", d4: "Posicionamiento inteligente para Middlescroll y Downscroll.",
+                b0: "Ver qué hace el mod", b1: "Descargar Mod Oficial", b3: "Registro para Colaborar",
+                b_donate: "Apoya a los Creadores (BTC Lightning)",
+                b_discord: "Comunidad Discord", b_qr: "Herramienta RankyQR",
+                b_twitter: "Twitter: Quasvx", b_pikapi: "Twitter: Pikapi"
             }
         };
-        let currentLang = 'es';
-        function applyLanguage(lang) {
-            currentLang = lang;
-            setCookie('ranky_lang', lang);
-            const t = texts[lang];
-            document.getElementById('menuTitle').innerText = t.menuTitle;
-            document.getElementById('backToRootItem').innerHTML = t.backToRoot;
-            document.getElementById('themeLabel').innerHTML = t.themeLabel;
-            document.getElementById('footerCredits').innerText = t.footer;
-            document.getElementById('title').innerText = t.title;
-            document.getElementById('subtitle').innerText = t.subtitle;
-            document.getElementById('sec1').innerText = t.sec1;
-            document.getElementById('sec2').innerText = t.sec2;
-            document.getElementById('sec3').innerText = t.sec3;
-            document.getElementById('lDiscord').innerText = t.lDiscord;
-            document.getElementById('lEmail').innerText = t.lEmail;
-            document.getElementById('lRole').innerText = t.lRole;
-            document.getElementById('optSelect').innerText = t.optSelect;
-            document.getElementById('optCoder').innerText = t.optCoder;
-            document.getElementById('optArtist').innerText = t.optArtist;
-            document.getElementById('optMusic').innerText = t.optMusic;
-            document.getElementById('optChart').innerText = t.optChart;
-            document.getElementById('lTools').innerText = t.lTools;
-            document.getElementById('lAge').innerText = t.lAge;
-            document.getElementById('lHours').innerText = t.lHours;
-            document.getElementById('lSkill').innerText = t.lSkill;
-            document.getElementById('lPortfolio').innerText = t.lPortfolio;
-            document.getElementById('lExperience').innerText = t.lExperience;
-            document.getElementById('lMotivation').innerText = t.lMotivation;
-            document.getElementById('lConflict').innerText = t.lConflict;
-            document.getElementById('lFuture').innerText = t.lFuture;
-            document.getElementById('verifyLabel').innerText = t.verifyLabel;
-            document.getElementById('submitBtn').innerHTML = t.submitBtn;
-            document.getElementById('menuBtn').innerHTML = lang === 'es' ? '☰ Menú' : '☰ Menu';
+
+        function toggleVideo() {
+            const container = document.getElementById('video-container');
+            const player = document.getElementById('yt-player');
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+                player.src = "https://www.youtube-nocookie.com/embed/BPwoxU-s3Yg?autoplay=1&rel=0";
+            } else {
+                container.style.display = 'none';
+                player.src = "";
+            }
         }
 
-        // Menú lateral
-        const sidebar = document.getElementById('sidebar');
-        const overlayMenu = document.getElementById('menuOverlay');
-        function openMenu() { sidebar.classList.add('open'); overlayMenu.classList.add('active'); }
-        function closeMenu() { sidebar.classList.remove('open'); overlayMenu.classList.remove('active'); }
-        document.getElementById('menuBtn').addEventListener('click', openMenu);
-        document.getElementById('closeSidebarBtn').addEventListener('click', closeMenu);
-        overlayMenu.addEventListener('click', closeMenu);
-        document.getElementById('backToRootItem').addEventListener('click', () => {
-            window.location.href = 'https://rankyfnf.cc.cd';
-        });
-        document.getElementById('langEsBtn').addEventListener('click', () => applyLanguage('es'));
-        document.getElementById('langEnBtn').addEventListener('click', () => applyLanguage('en'));
-
-        // Envío del formulario
-        let mouseMoves = 0, pasteCount = 0, startTime = Date.now();
-        document.addEventListener('mousemove', () => mouseMoves++);
-        document.querySelectorAll('input, textarea').forEach(el => el.addEventListener('paste', () => pasteCount++));
-
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        function updateContent() {
+            document.getElementById('main-sub').innerText = translations[currentLang].sub;
+            document.getElementById('feat-title').innerText = translations[currentLang].feat;
+            document.getElementById('t1').innerText = translations[currentLang].t1;
+            document.getElementById('d1').innerText = translations[currentLang].d1;
+            document.getElementById('t2').innerText = translations[currentLang].t2;
+            document.getElementById('d2').innerText = translations[currentLang].d2;
+            document.getElementById('t3').innerText = translations[currentLang].t3;
+            document.getElementById('d3').innerText = translations[currentLang].d3;
+            document.getElementById('t4').innerText = translations[currentLang].t4;
+            document.getElementById('d4').innerText = translations[currentLang].d4;
+            document.getElementById('b0').innerText = translations[currentLang].b0;
+            document.getElementById('b1').innerText = translations[currentLang].b1;
+            document.getElementById('b3').innerText = translations[currentLang].b3;
+            document.getElementById('b_donate').innerText = translations[currentLang].b_donate;
+            document.getElementById('b_discord').innerText = translations[currentLang].b_discord;
+            document.getElementById('b_qr').innerText = translations[currentLang].b_qr;
+            document.getElementById('b_twitter').innerText = translations[currentLang].b_twitter;
+            document.getElementById('b_pikapi').innerText = translations[currentLang].b_pikapi;
+            document.getElementById('btn-lang').innerText = currentLang.toUpperCase();
         }
 
-        function closeSuccessModal() {
-            document.getElementById('successModal').style.display = 'none';
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'es' : 'en';
+            updateContent();
         }
-        window.closeSuccessModal = closeSuccessModal;
 
-        document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (isBanned) {
-                alert('IP baneada por 25 minutos. No puedes enviar el formulario.');
-                return;
-            }
-            
-            const elapsed = (Date.now() - startTime) / 1000;
-            const t = texts[currentLang];
-            const alertDiv = document.getElementById('securityAlert');
-            
-            // Verificar captcha
-            const captchaOk = await verifyCaptcha();
-            if (!captchaOk) {
-                return;
-            }
-            
-            if (mouseMoves < 4) {
-                alertDiv.innerText = t.errors.mouse;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            if (elapsed < 5) {
-                alertDiv.innerText = t.errors.speed;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            if (pasteCount > 4) {
-                alertDiv.innerText = t.errors.paste;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "...";
-            
-            try {
-                const formData = {
-                    discord: document.getElementById('discord').value,
-                    email: document.getElementById('email').value,
-                    role: document.getElementById('role').value,
-                    software: document.getElementById('software').value,
-                    age: document.getElementById('age').value,
-                    hours: document.getElementById('hours').value,
-                    skill: document.getElementById('skill').value,
-                    portfolio: document.getElementById('portfolio').value,
-                    experience: document.getElementById('experience').value,
-                    motivation: document.getElementById('motivation').value,
-                    conflict: document.getElementById('conflict').value,
-                    future: document.getElementById('future').value,
-                    lang: currentLang
-                };
-                
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'form',
-                        formData: formData
-                    })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success) {
-                    const modalMsg = document.getElementById('modalMessage');
-                    const userEmail = document.getElementById('email').value;
-                    if (isValidEmail(userEmail)) {
-                        modalMsg.innerHTML = `<p>${t.modalTextValid}</p><div class="contact-email" style="background:var(--accent-soft);padding:0.5rem;border-radius:1rem;">${t.contactEmail}</div><p>✅ Hemos recibido: <strong>${userEmail}</strong></p>`;
-                    } else {
-                        modalMsg.innerHTML = `<p>${t.modalTextInvalid}</p>`;
-                    }
-                    document.getElementById('successModal').style.display = 'flex';
-                    document.getElementById('applicationForm').reset();
-                    captchaFailCount = 0;
-                    refreshCaptcha();
-                } else {
-                    alert("Error en el envío: " + (data.msg || "Intenta de nuevo"));
-                    refreshCaptcha();
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Error de red. Revisa tu conexión.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = texts[currentLang].submitBtn;
-            }
-        });
-
-        // Inicializar
-        initTheme();
-        const savedLang = getCookie('ranky_lang');
-        applyLanguage(savedLang === 'en' ? 'en' : 'es');
-        refreshCaptcha();
-        checkBanStatus();
-        
-        document.getElementById('refreshCaptcha').addEventListener('click', () => refreshCaptcha());
-        document.getElementById('captchaCanvas').addEventListener('click', () => refreshCaptcha());
+        window.onload = () => {
+            if (navigator.language.startsWith('es')) currentLang = 'es';
+            updateContent();
+        };
     </script>
 </body>
 </html>
