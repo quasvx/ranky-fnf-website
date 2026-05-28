@@ -411,7 +411,7 @@
     <div class="sidebar-menu" id="sidebar">
         <button class="close-sidebar" id="closeSidebarBtn">✕</button>
         <div class="menu-title" id="menuTitle">Menú</div>
-        <div class="menu-item" id="backToRootItem">🏠 Back to Root</div>
+        <div class="menu-item" id="backToRootItem">🏠 Volver al Inicio</div>
         <div class="external-link">
             <a href="https://www.quasvx.cc.cd" target="_blank" class="external-btn">⚡ Quasvx</a>
         </div>
@@ -486,7 +486,7 @@
                 <div class="row">
                     <div class="col-12">
                         <label class="form-label" id="lPortfolio">Portafolio / GitHub / GameBanana *</label>
-                        <input type="text" id="portfolio" class="form-control" placeholder="https://github.com/tuusuario o gamebanana.com/member/..." required>
+                        <input type="text" id="portfolio" class="form-control" placeholder="https://github.com/tuusuario" required>
                     </div>
                 </div>
                 <div class="row">
@@ -538,7 +538,9 @@
     </div>
 
     <script>
-        // ========== COOKIES ==========
+        const API_URL = 'https://ranky-api.pages.dev/api/api';
+        
+        // Cookies solo para preferencias
         function setCookie(name, value, days = 365) {
             let expires = "";
             if (days) {
@@ -553,23 +555,16 @@
             return match ? match[2] : null;
         }
 
-        // ========== BLOQUEO TEMPORAL (10 MINUTOS) ==========
-        function isBlocked() {
-            const b = getCookie('ranky_blocked');
-            return b && parseInt(b) > Date.now();
-        }
-        function setBlocked() {
-            setCookie('ranky_blocked', Date.now() + 600000, 0.01);
-        }
-
-        // ========== CAPTCHA: 3 INTENTOS TURNSTILE → reCAPTCHA ==========
+        // Variables captcha
         let turnstileAttempts = 0;
+        let recaptchaAttempts = 0;
         let turnstileWidget = null;
         let currentStage = 'turnstile';
         let recaptchaWidget = null;
         let captchaToken = null;
         let turnstileSitekey = "";
         let recaptchaSitekey = "";
+        let isBlocked = false;
 
         function updateStatus(msg, type) {
             const div = document.getElementById('captchaStatus');
@@ -580,18 +575,71 @@
             }, 5000);
         }
 
-        function turnstileSuccess(token) {
+        function showBlockedMessage() {
+            isBlocked = true;
+            updateStatus('🚫 IP BANEADA por 25 minutos. Intenta más tarde.', 'error');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('turnstileContainer').style.display = 'none';
+            document.getElementById('recaptchaContainer').style.display = 'none';
+        }
+
+        // TURNSTILE: 3 intentos maximo
+        async function turnstileSuccess(token) {
+            if (isBlocked) return;
+            
             captchaToken = token;
-            turnstileAttempts = 0;
-            updateStatus('✅ Verificación exitosa', 'success');
-            document.getElementById('submitBtn').disabled = false;
+            
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'verify',
+                        turnstileToken: token,
+                        isFallback: false
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    turnstileAttempts = 0;
+                    recaptchaAttempts = 0;
+                    updateStatus('✅ Verificación exitosa', 'success');
+                    document.getElementById('submitBtn').disabled = false;
+                } else {
+                    if (data.blocked) {
+                        showBlockedMessage();
+                    } else if (data.useReCaptcha || turnstileAttempts >= 2) {
+                        // Cambiar a reCAPTCHA después de 3 intentos fallidos
+                        updateStatus('🔄 Cambiando a reCAPTCHA...', 'warning');
+                        switchToRecaptcha();
+                    } else {
+                        turnstileAttempts++;
+                        updateStatus(`⚠️ Error en Turnstile (intento ${turnstileAttempts}/3)`, 'error');
+                        if (turnstileWidget) turnstile.reset(turnstileWidget);
+                        document.getElementById('submitBtn').disabled = true;
+                        captchaToken = null;
+                    }
+                }
+            } catch (err) {
+                console.error('Verification error:', err);
+                turnstileAttempts++;
+                updateStatus(`⚠️ Error (intento ${turnstileAttempts}/3)`, 'error');
+                if (turnstileAttempts >= 3) {
+                    switchToRecaptcha();
+                } else {
+                    if (turnstileWidget) turnstile.reset(turnstileWidget);
+                    document.getElementById('submitBtn').disabled = true;
+                }
+            }
         }
 
         function turnstileError() {
+            if (isBlocked) return;
             turnstileAttempts++;
             updateStatus(`⚠️ Error en Turnstile (intento ${turnstileAttempts}/3)`, 'error');
             if (turnstileAttempts >= 3) {
-                updateStatus('🔄 Cambiando a reCAPTCHA...', 'warning');
                 switchToRecaptcha();
             } else {
                 if (turnstileWidget) turnstile.reset(turnstileWidget);
@@ -616,22 +664,60 @@
             });
         }
 
-        function recaptchaSuccess(token) {
+        // RECAPTCHA: 2 intentos maximo
+        async function recaptchaSuccess(token) {
+            if (isBlocked) return;
+            
             captchaToken = token;
-            updateStatus('✅ Verificación exitosa (reCAPTCHA)', 'success');
-            document.getElementById('submitBtn').disabled = false;
-        }
-
-        function recaptchaError() {
-            updateStatus('❌ reCAPTCHA falló. Has sido bloqueado por 10 minutos.', 'error');
-            setBlocked();
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('turnstileContainer').style.display = 'none';
-            document.getElementById('recaptchaContainer').style.display = 'none';
+            
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'verify',
+                        turnstileToken: token,
+                        isFallback: true
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    turnstileAttempts = 0;
+                    recaptchaAttempts = 0;
+                    updateStatus('✅ Verificación exitosa (reCAPTCHA)', 'success');
+                    document.getElementById('submitBtn').disabled = false;
+                } else {
+                    if (data.blocked) {
+                        showBlockedMessage();
+                    } else {
+                        recaptchaAttempts++;
+                        updateStatus(`⚠️ Error en reCAPTCHA (intento ${recaptchaAttempts}/2)`, 'error');
+                        
+                        if (recaptchaAttempts >= 2) {
+                            // BAN después de 2 fallos de reCAPTCHA
+                            updateStatus('🚫 Demasiados fallos. Has sido baneado por 25 minutos.', 'error');
+                            showBlockedMessage();
+                        } else {
+                            if (recaptchaWidget) grecaptcha.reset(recaptchaWidget);
+                            document.getElementById('submitBtn').disabled = true;
+                            captchaToken = null;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('reCAPTCHA error:', err);
+                recaptchaAttempts++;
+                updateStatus(`⚠️ Error reCAPTCHA (${recaptchaAttempts}/2)`, 'error');
+                if (recaptchaAttempts >= 2) {
+                    showBlockedMessage();
+                }
+            }
         }
 
         function switchToRecaptcha() {
-            if (currentStage === 'recaptcha') return;
+            if (currentStage === 'recaptcha' || isBlocked) return;
             currentStage = 'recaptcha';
             document.getElementById('turnstileContainer').style.display = 'none';
             document.getElementById('recaptchaContainer').style.display = 'flex';
@@ -644,28 +730,23 @@
                         captchaToken = null;
                         document.getElementById('submitBtn').disabled = true;
                         updateStatus('reCAPTCHA expirado', 'error');
-                    },
-                    'error-callback': recaptchaError
+                    }
                 });
             } catch(e) {
-                recaptchaError();
+                showBlockedMessage();
             }
         }
 
         function initCaptcha() {
-            if (isBlocked()) {
-                updateStatus('🚫 Acceso bloqueado por 10 minutos. Intenta más tarde.', 'error');
-                document.getElementById('submitBtn').disabled = true;
-                return;
-            }
             currentStage = 'turnstile';
             turnstileAttempts = 0;
+            recaptchaAttempts = 0;
+            isBlocked = false;
             document.getElementById('turnstileContainer').style.display = 'flex';
             document.getElementById('recaptchaContainer').style.display = 'none';
             renderTurnstile();
         }
 
-        // ========== CARGAR CONFIG.JSON ==========
         async function loadConfig() {
             try {
                 const res = await fetch('./config.json');
@@ -675,7 +756,6 @@
                 initCaptcha();
             } catch(e) {
                 console.error('Error loading config:', e);
-                // Fallback a claves de prueba
                 turnstileSitekey = "0x4AAAAAAC1hHPxy_vFvCggo";
                 recaptchaSitekey = "6Le0PrssAAAAACIFcVxZgEAqc7wHL1l5T4slFRqk";
                 initCaptcha();
@@ -767,7 +847,6 @@
             document.getElementById('lFuture').innerText = t.lFuture;
             document.getElementById('verifyLabel').innerText = t.verifyLabel;
             document.getElementById('submitBtn').innerHTML = t.submitBtn;
-            document.getElementById('modalTitle').innerText = t.modalTitle;
             document.getElementById('menuBtn').innerHTML = lang === 'es' ? '☰ Menú' : '☰ Menu';
         }
 
@@ -802,8 +881,8 @@
         document.getElementById('applicationForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (isBlocked()) {
-                updateStatus('Bloqueado por 10 minutos. Espera.', 'error');
+            if (isBlocked) {
+                updateStatus('Estás baneado. Espera 25 minutos.', 'error');
                 return;
             }
             
@@ -857,7 +936,7 @@
                     lang: currentLang
                 };
                 
-                const res = await fetch('https://ranky-api.pages.dev/api/api', {
+                const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -879,9 +958,16 @@
                         modalMsg.innerHTML = `<p>${t.modalTextInvalid}</p>`;
                     }
                     document.getElementById('successModal').style.display = 'flex';
+                    document.getElementById('applicationForm').reset();
+                    captchaToken = null;
+                    document.getElementById('submitBtn').disabled = true;
+                    if (turnstileWidget) turnstile.reset(turnstileWidget);
                 } else {
-                    alert("Error en el envío. Intenta de nuevo.");
-                    if (data.blocked) setBlocked();
+                    if (data.blocked) {
+                        showBlockedMessage();
+                    } else {
+                        alert("Error en el envío. Intenta de nuevo.");
+                    }
                 }
             } catch (err) {
                 console.error(err);
