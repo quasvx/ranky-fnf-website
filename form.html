@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Ranky Form | Staff Application</title>
-    <link rel="icon" href="/formulary.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -467,11 +466,11 @@
                     </div>
                 </div>
 
-                <!-- CAPTCHA SIMPLE DE 4 LETRAS CON BANEO -->
+                <!-- CAPTCHA DISTORSIONADO -->
                 <div class="captcha-box">
                     <label class="form-label" id="verifyLabel">🔐 Verificación de seguridad</label>
                     <div class="captcha-canvas" id="captchaCanvas" title="Haz clic para actualizar">
-                        <canvas id="captchaImage" width="200" height="60"></canvas>
+                        <canvas id="captchaImage" width="220" height="70"></canvas>
                     </div>
                     <div class="captcha-input">
                         <input type="text" id="captchaInput" class="form-control" placeholder="Ingresa el código" maxlength="4" autocomplete="off">
@@ -494,56 +493,140 @@
     </div>
 
     <script>
-        const API_URL = 'https://ranky-api.pages.dev/api/api';
+        const API_URL = 'https://ranky.api.otp.cc.cd';
+
+        // ========== EVERCOOKIE (8 métodos de almacenamiento) ==========
+        const BAN_KEY = 'ranky_banned_until';
         
-        function setCookie(name, value, days = 365) {
-            let expires = "";
-            if (days) {
-                const d = new Date();
-                d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-                expires = "; expires=" + d.toUTCString();
+        function setEvercookie(name, value, minutes) {
+            const expireDate = new Date();
+            expireDate.setTime(expireDate.getTime() + (minutes * 60 * 1000));
+            
+            // 1. Cookie estándar
+            document.cookie = `${name}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
+            
+            // 2. localStorage
+            try { localStorage.setItem(name, value); } catch(e) {}
+            
+            // 3. sessionStorage
+            try { sessionStorage.setItem(name, value); } catch(e) {}
+            
+            // 4. IndexedDB
+            try {
+                const request = indexedDB.open('rankyDB', 1);
+                request.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('banStore')) {
+                        db.createObjectStore('banStore');
+                    }
+                };
+                request.onsuccess = function(e) {
+                    const db = e.target.result;
+                    const tx = db.transaction('banStore', 'readwrite');
+                    const store = tx.objectStore('banStore');
+                    store.put(value, name);
+                    tx.oncomplete = () => db.close();
+                };
+            } catch(e) {}
+            
+            // 5. window.name (persiste entre recargas)
+            window.name = `${name}=${value}`;
+            
+            // 6. Un valor oculto en el DOM
+            let hiddenInput = document.getElementById('evercookie_hidden');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.id = 'evercookie_hidden';
+                document.body.appendChild(hiddenInput);
             }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+            hiddenInput.value = `${name}=${value}`;
         }
-        function getCookie(name) {
+        
+        function getEvercookie(name) {
+            // 1. Cookie
             const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : null;
+            if (match) return match[2];
+            
+            // 2. localStorage
+            try { 
+                const ls = localStorage.getItem(name);
+                if (ls) return ls;
+            } catch(e) {}
+            
+            // 3. sessionStorage
+            try { 
+                const ss = sessionStorage.getItem(name);
+                if (ss) return ss;
+            } catch(e) {}
+            
+            // 4. window.name
+            if (window.name && window.name.startsWith(`${name}=`)) {
+                return window.name.split('=')[1];
+            }
+            
+            // 5. DOM hidden
+            const hidden = document.getElementById('evercookie_hidden');
+            if (hidden && hidden.value && hidden.value.startsWith(`${name}=`)) {
+                return hidden.value.split('=')[1];
+            }
+            
+            // 6. IndexedDB
+            return new Promise((resolve) => {
+                try {
+                    const request = indexedDB.open('rankyDB', 1);
+                    request.onsuccess = function(e) {
+                        const db = e.target.result;
+                        if (db.objectStoreNames.contains('banStore')) {
+                            const tx = db.transaction('banStore', 'readonly');
+                            const store = tx.objectStore('banStore');
+                            const getReq = store.get(name);
+                            getReq.onsuccess = () => {
+                                db.close();
+                                resolve(getReq.result || null);
+                            };
+                            getReq.onerror = () => {
+                                db.close();
+                                resolve(null);
+                            };
+                        } else {
+                            db.close();
+                            resolve(null);
+                        }
+                    };
+                    request.onerror = () => resolve(null);
+                } catch(e) {
+                    resolve(null);
+                }
+            });
+        }
+        
+        async function isEvercookieBanned() {
+            const value = await getEvercookie(BAN_KEY);
+            if (!value) return false;
+            const bannedUntil = parseInt(value);
+            return bannedUntil > Date.now();
+        }
+        
+        async function setEvercookieBan(minutes) {
+            const bannedUntil = Date.now() + (minutes * 60 * 1000);
+            setEvercookie(BAN_KEY, bannedUntil.toString(), minutes);
         }
 
-        // ========== CAPTCHA CON BANEO ==========
+        // ========== CAPTCHA DISTORSIONADO ==========
         let currentCaptchaCode = '';
         let captchaFailCount = 0;
         let isBanned = false;
-        let banCheckDone = false;
         
-        async function checkBanStatus() {
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'checkBan' })
-                });
-                const data = await res.json();
-                if (data.blocked) {
-                    isBanned = true;
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('captchaInput').disabled = true;
-                    document.getElementById('refreshCaptcha').disabled = true;
-                    document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
-                    document.getElementById('captchaStatus').className = 'captcha-status error';
-                }
-            } catch(e) { console.error('Error checking ban:', e); }
-            banCheckDone = true;
-        }
-        
-        async function recordCaptchaFail() {
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type: 'captchaFail' })
-                });
-            } catch(e) { console.error('Error recording fail:', e); }
+        async function checkLocalBan() {
+            isBanned = await isEvercookieBanned();
+            if (isBanned) {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('captchaInput').disabled = true;
+                document.getElementById('refreshCaptcha').disabled = true;
+                document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
+                document.getElementById('captchaStatus').className = 'captcha-status error';
+            }
         }
         
         function generateRandomCode() {
@@ -558,49 +641,70 @@
         function drawDistortedText(code) {
             const canvas = document.getElementById('captchaImage');
             const ctx = canvas.getContext('2d');
-            const width = 200;
-            const height = 60;
+            const width = 220;
+            const height = 70;
             
             canvas.width = width;
             canvas.height = height;
             
+            // Fondo oscuro
             ctx.fillStyle = '#2d2d44';
             ctx.fillRect(0, 0, width, height);
             
-            for (let i = 0; i < 8; i++) {
+            // Líneas onduladas (distorsión)
+            for (let i = 0; i < 12; i++) {
                 ctx.beginPath();
                 ctx.moveTo(Math.random() * width, Math.random() * height);
                 ctx.lineTo(Math.random() * width, Math.random() * height);
-                ctx.strokeStyle = `rgba(100, 100, 150, ${Math.random() * 0.5})`;
+                ctx.strokeStyle = `rgba(150, 150, 200, ${Math.random() * 0.6})`;
+                ctx.lineWidth = Math.random() * 2 + 1;
                 ctx.stroke();
             }
             
-            for (let i = 0; i < 100; i++) {
-                ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.6})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+            // Círculos de ruido
+            for (let i = 0; i < 80; i++) {
+                ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.5})`;
+                ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
             }
             
+            // Letras con distorsión fuerte
             const chars = code.split('');
-            const startX = 25;
-            const startY = 40;
+            const startX = 30;
+            const startY = 48;
             
             chars.forEach((char, index) => {
-                const x = startX + (index * 38);
-                const y = startY + (Math.random() * 8 - 4);
-                const rotation = (Math.random() - 0.5) * 0.4;
+                const x = startX + (index * 42);
+                const y = startY + (Math.random() * 12 - 6);
+                const rotation = (Math.random() - 0.5) * 0.6;
+                const skewX = Math.random() * 0.3 - 0.15;
                 
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(rotation);
-                ctx.font = `bold ${32 + Math.random() * 6}px "Courier New", monospace`;
-                ctx.fillStyle = `hsl(${40 + Math.random() * 40}, 70%, 60%)`;
+                ctx.transform(1, skewX, 0, 1, 0, 0);
+                ctx.font = `bold ${34 + Math.random() * 8}px "Courier New", monospace`;
+                const hue = 30 + Math.random() * 50;
+                ctx.fillStyle = `hsl(${hue}, 75%, 55%)`;
                 ctx.fillText(char, 0, 0);
                 ctx.restore();
             });
             
-            for (let i = 0; i < 60; i++) {
+            // Ruido de puntos pequeños
+            for (let i = 0; i < 200; i++) {
                 ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.4})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 2, 1);
+                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+            }
+            
+            // Líneas de distorsión adicionales (ondas seno simuladas)
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                const yOffset = 20 + i * 10;
+                ctx.moveTo(0, yOffset);
+                for (let x = 0; x < width; x += 10) {
+                    ctx.lineTo(x, yOffset + Math.sin(x * 0.05) * 5);
+                }
+                ctx.strokeStyle = `rgba(100, 150, 200, 0.3)`;
+                ctx.stroke();
             }
         }
         
@@ -613,7 +717,7 @@
         
         async function verifyCaptcha() {
             if (isBanned) {
-                document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
+                document.getElementById('captchaStatus').innerHTML = '🚫 BANEADO por 25 minutos';
                 document.getElementById('captchaStatus').className = 'captcha-status error';
                 return false;
             }
@@ -624,6 +728,7 @@
                 document.getElementById('captchaStatus').className = 'captcha-status error';
                 return false;
             }
+            
             if (userInput !== currentCaptchaCode) {
                 captchaFailCount++;
                 document.getElementById('captchaStatus').innerHTML = `❌ Código incorrecto (${captchaFailCount}/5)`;
@@ -631,14 +736,13 @@
                 refreshCaptcha();
                 
                 if (captchaFailCount >= 5) {
-                    await recordCaptchaFail();
+                    await setEvercookieBan(25);
                     isBanned = true;
                     document.getElementById('submitBtn').disabled = true;
                     document.getElementById('captchaInput').disabled = true;
                     document.getElementById('refreshCaptcha').disabled = true;
                     document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
                     document.getElementById('captchaStatus').className = 'captcha-status error';
-                    return false;
                 }
                 return false;
             }
@@ -650,6 +754,21 @@
         }
 
         // ========== TEMA Y TRADUCCIONES ==========
+        function setCookie(name, value, days = 365) {
+            let expires = "";
+            if (days) {
+                const d = new Date();
+                d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+                expires = "; expires=" + d.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+        
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+        
         function initTheme() {
             const saved = getCookie('ranky_theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -657,6 +776,7 @@
             if (theme === 'dark') document.body.classList.add('dark');
             else document.body.classList.remove('dark');
         }
+        
         function toggleTheme() {
             if (document.body.classList.contains('dark')) {
                 document.body.classList.remove('dark');
@@ -700,6 +820,7 @@
                 errors: { mouse: "Mueve el ratón primero.", speed: "Demasiado rápido. Espera.", paste: "Evita pegar en exceso." }
             }
         };
+        
         let currentLang = 'es';
         function applyLanguage(lang) {
             currentLang = lang;
@@ -768,7 +889,7 @@
             e.preventDefault();
             
             if (isBanned) {
-                alert('IP baneada por 25 minutos. No puedes enviar el formulario.');
+                alert('Estás baneado por 25 minutos. No puedes enviar el formulario.');
                 return;
             }
             
@@ -776,11 +897,8 @@
             const t = texts[currentLang];
             const alertDiv = document.getElementById('securityAlert');
             
-            // Verificar captcha
             const captchaOk = await verifyCaptcha();
-            if (!captchaOk) {
-                return;
-            }
+            if (!captchaOk) return;
             
             if (mouseMoves < 4) {
                 alertDiv.innerText = t.errors.mouse;
@@ -863,7 +981,7 @@
         const savedLang = getCookie('ranky_lang');
         applyLanguage(savedLang === 'en' ? 'en' : 'es');
         refreshCaptcha();
-        checkBanStatus();
+        checkLocalBan();
         
         document.getElementById('refreshCaptcha').addEventListener('click', () => refreshCaptcha());
         document.getElementById('captchaCanvas').addEventListener('click', () => refreshCaptcha());
