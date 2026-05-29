@@ -638,75 +638,88 @@
             return result;
         }
         
-        function drawDistortedText(code) {
-            const canvas = document.getElementById('captchaImage');
-            const ctx = canvas.getContext('2d');
-            const width = 220;
-            const height = 70;
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Fondo oscuro
-            ctx.fillStyle = '#2d2d44';
-            ctx.fillRect(0, 0, width, height);
-            
-            // Líneas onduladas (distorsión)
-            for (let i = 0; i < 12; i++) {
-                ctx.beginPath();
-                ctx.moveTo(Math.random() * width, Math.random() * height);
-                ctx.lineTo(Math.random() * width, Math.random() * height);
-                ctx.strokeStyle = `rgba(150, 150, 200, ${Math.random() * 0.6})`;
-                ctx.lineWidth = Math.random() * 2 + 1;
-                ctx.stroke();
-            }
-            
-            // Círculos de ruido
-            for (let i = 0; i < 80; i++) {
-                ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.5})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
-            }
-            
-            // Letras con distorsión fuerte
-            const chars = code.split('');
-            const startX = 30;
-            const startY = 48;
-            
-            chars.forEach((char, index) => {
-                const x = startX + (index * 42);
-                const y = startY + (Math.random() * 12 - 6);
-                const rotation = (Math.random() - 0.5) * 0.6;
-                const skewX = Math.random() * 0.3 - 0.15;
-                
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(rotation);
-                ctx.transform(1, skewX, 0, 1, 0, 0);
-                ctx.font = `bold ${34 + Math.random() * 8}px "Courier New", monospace`;
-                const hue = 30 + Math.random() * 50;
-                ctx.fillStyle = `hsl(${hue}, 75%, 55%)`;
-                ctx.fillText(char, 0, 0);
-                ctx.restore();
-            });
-            
-            // Ruido de puntos pequeños
-            for (let i = 0; i < 200; i++) {
-                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.4})`;
-                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
-            }
-            
-            // Líneas de distorsión adicionales (ondas seno simuladas)
-            for (let i = 0; i < 5; i++) {
-                ctx.beginPath();
-                const yOffset = 20 + i * 10;
-                ctx.moveTo(0, yOffset);
-                for (let x = 0; x < width; x += 10) {
-                    ctx.lineTo(x, yOffset + Math.sin(x * 0.05) * 5);
-                }
-                ctx.strokeStyle = `rgba(100, 150, 200, 0.3)`;
-                ctx.stroke();
-            }
+      function drawDistortedText(code) {
+    const canvas = document.getElementById('captchaImage');
+    const ctx = canvas.getContext('2d');
+    const width = 220;
+    const height = 70;
+    
+    canvas.width = width;
+    canvas.height = height;
+    
+    // 1. Fondo oscuro
+    ctx.fillStyle = '#2d2d44';
+    ctx.fillRect(0, 0, width, height);
+    
+    // 2. Dibujar LETRAS primero
+    const chars = code.split('');
+    const startX = 30;
+    const startY = 48;
+    
+    chars.forEach((char, index) => {
+        const x = startX + (index * 42);
+        const y = startY + (Math.random() * 12 - 6);
+        const rotation = (Math.random() - 0.5) * 0.6;
+        const skewX = Math.random() * 0.3 - 0.15;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.transform(1, skewX, 0, 1, 0, 0);
+        ctx.font = `bold ${34 + Math.random() * 8}px "Courier New", monospace`;
+        const hue = 30 + Math.random() * 50;
+        ctx.fillStyle = `hsl(${hue}, 75%, 55%)`;
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+    });
+    
+    // 3. Líneas onduladas ENCIMA de las letras (opacas pero visibles)
+    for (let i = 0; i < 12; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * width, Math.random() * height);
+        ctx.lineTo(Math.random() * width, Math.random() * height);
+        ctx.strokeStyle = `rgba(200, 200, 255, ${Math.random() * 0.35 + 0.2})`;
+        ctx.lineWidth = Math.random() * 2 + 1;
+        ctx.stroke();
+    }
+    
+    // 4. Ondas seno ENCIMA
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        const yOffset = 20 + i * 10;
+        ctx.moveTo(0, yOffset);
+        for (let x = 0; x < width; x += 10) {
+            ctx.lineTo(x, yOffset + Math.sin(x * 0.05) * 6);
         }
+        ctx.strokeStyle = `rgba(150, 180, 220, 0.4)`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+    
+    // 5. Puntos de ruido ENCIMA
+    for (let i = 0; i < 300; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+        ctx.fillRect(Math.random() * width, Math.random() * height, 1.5, 1.5);
+    }
+    
+    // 6. Círculos pequeños ENCIMA
+    for (let i = 0; i < 40; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 2 + 1, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.4})`;
+        ctx.fill();
+    }
+    
+    // 7. Líneas diagonales ENCIMA
+    for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * width, Math.random() * height);
+        ctx.lineTo(Math.random() * width, Math.random() * height);
+        ctx.strokeStyle = `rgba(255, 255, 255, 0.25)`;
+        ctx.lineWidth = Math.random() * 1.5 + 0.5;
+        ctx.stroke();
+    }
+}
         
         function refreshCaptcha() {
             if (isBanned) return;
