@@ -367,18 +367,13 @@
             body { padding: 1rem; }
             .col-md-6, .col-md-4 { min-width: 100%; }
         }
-        /* Anti-debug: blur cuando se abre consola */
-        body.console-open {
-            filter: blur(20px);
-            pointer-events: none;
-        }
         .anti-debug-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 10000;
             display: none;
             justify-content: center;
@@ -408,7 +403,6 @@
     <div class="anti-debug-overlay" id="antiDebugOverlay">
         <p>🚫 <strong>Consola detectada</strong></p>
         <p>Por seguridad, la página se ha bloqueado.</p>
-        <p>Recarga la página para continuar.</p>
         <button onclick="location.reload()">🔄 Recargar</button>
     </div>
 
@@ -515,7 +509,6 @@
                     </div>
                 </div>
 
-                <!-- CAPTCHA -->
                 <div class="captcha-box">
                     <label class="form-label" id="verifyLabel">🔐 Verificación de seguridad</label>
                     <div class="captcha-canvas" id="captchaCanvas" title="Haz clic para actualizar">
@@ -543,11 +536,9 @@
     </div>
 
     <script>
-        // ========== PROTECCIÓN DE CONSOLA Y ANTIDEBUG ==========
+        // ========== PROTECCIÓN DE CONSOLA ==========
         (function() {
-            // Detectar si la consola está abierta
             let devToolsOpen = false;
-            const element = new Image();
             
             function detectDevTools() {
                 const threshold = 160;
@@ -557,103 +548,63 @@
                 if (widthDiff || heightDiff) {
                     if (!devToolsOpen) {
                         devToolsOpen = true;
-                        document.getElementById('antiDebugOverlay')?.classList.add('active');
-                        document.body.classList.add('console-open');
+                        const overlay = document.getElementById('antiDebugOverlay');
+                        if (overlay) overlay.classList.add('active');
                     }
                 } else {
                     if (devToolsOpen) {
                         devToolsOpen = false;
-                        // No remover overlay automáticamente, requiere recarga
                     }
                 }
             }
             
             setInterval(detectDevTools, 1000);
-            
-            // Bloquear métodos comunes de desbaneo
-            const originalLocalStorageRemove = localStorage.removeItem;
-            localStorage.removeItem = function(key) {
-                if (key === 'ranky_banned_until') {
-                    console.warn('[Seguridad] No puedes eliminar el ban');
-                    return;
-                }
-                return originalLocalStorageRemove.call(this, key);
-            };
-            
-            const originalSessionStorageRemove = sessionStorage.removeItem;
-            sessionStorage.removeItem = function(key) {
-                if (key === 'ranky_banned_until') {
-                    console.warn('[Seguridad] No puedes eliminar el ban');
-                    return;
-                }
-                return originalSessionStorageRemove.call(this, key);
-            };
-            
-            // Bloquear modificación de cookie
-            const originalCookieSetter = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie')?.set;
-            Object.defineProperty(document, 'cookie', {
-                get: function() {
-                    return originalCookieSetter ? originalCookieSetter.call(this) : document.cookie;
-                },
-                set: function(value) {
-                    if (value.includes('ranky_banned_until') && (value.includes('expires=Thu, 01 Jan 1970') || value.includes('max-age=0'))) {
-                        console.warn('[Seguridad] No puedes eliminar el ban');
-                        return;
-                    }
-                    if (originalCookieSetter) {
-                        originalCookieSetter.call(document, value);
-                    }
-                }
-            });
-            
-            // Bloquear window.name
-            const originalWindowName = Object.getOwnPropertyDescriptor(window, 'name');
-            Object.defineProperty(window, 'name', {
-                get: function() {
-                    return originalWindowName?.get ? originalWindowName.get.call(window) : window.name;
-                },
-                set: function(value) {
-                    if (value === '' && window.name.includes('ranky_banned_until')) {
-                        console.warn('[Seguridad] No puedes eliminar el ban');
-                        return;
-                    }
-                    if (originalWindowName?.set) {
-                        originalWindowName.set.call(window, value);
-                    } else {
-                        window.name = value;
-                    }
-                }
-            });
-            
-            // Prevenir que scripts externos inyecten código de desbaneo
-            const originalEval = window.eval;
-            window.eval = function(str) {
-                if (typeof str === 'string' && (str.includes('localStorage.removeItem') || 
-                    str.includes('sessionStorage.removeItem') ||
-                    str.includes('cookie') ||
-                    str.includes('clearEvercookieBan'))) {
-                    console.warn('[Seguridad] Script bloqueado');
-                    return null;
-                }
-                return originalEval.call(this, str);
-            };
         })();
 
         const API_URL = 'https://ranky.api.otp.cc.cd/api/api';
 
-        // ========== EVERCOOKIE COMPLETA (incluyendo IndexedDB) ==========
+        // ========== COOKIES (para tema e idioma) ==========
+        function setCookie(name, value, days = 365) {
+            try {
+                let expires = "";
+                if (days) {
+                    const d = new Date();
+                    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+                    expires = "; expires=" + d.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/";
+            } catch(e) {
+                console.warn('Error setting cookie:', e);
+            }
+        }
+        
+        function getCookie(name) {
+            try {
+                if (!document.cookie) return null;
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            } catch(e) {
+                console.warn('Error getting cookie:', e);
+                return null;
+            }
+        }
+        
+        // ========== EVERCOOKIE PARA BAN ==========
         const BAN_KEY = 'ranky_banned_until';
         
-        function setEvercookie(name, value, minutes) {
+        function setEvercookieBan(minutes) {
+            const bannedUntil = Date.now() + (minutes * 60 * 1000);
+            const value = bannedUntil.toString();
             const expireDate = new Date();
             expireDate.setTime(expireDate.getTime() + (minutes * 60 * 1000));
             
-            document.cookie = `${name}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
-            try { localStorage.setItem(name, value); } catch(e) {}
-            try { sessionStorage.setItem(name, value); } catch(e) {}
-            
-            // IndexedDB
             try {
+                document.cookie = `${BAN_KEY}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
+                localStorage.setItem(BAN_KEY, value);
+                sessionStorage.setItem(BAN_KEY, value);
+                window.name = `${BAN_KEY}=${value}`;
+                
+                // IndexedDB
                 const request = indexedDB.open('rankyDB', 1);
                 request.onupgradeneeded = function(e) {
                     const db = e.target.result;
@@ -665,108 +616,194 @@
                     const db = e.target.result;
                     const tx = db.transaction('banStore', 'readwrite');
                     const store = tx.objectStore('banStore');
-                    store.put(value, name);
+                    store.put(value, BAN_KEY);
                     tx.oncomplete = () => db.close();
                 };
             } catch(e) {}
-            
-            window.name = `${name}=${value}`;
-            
-            let hiddenInput = document.getElementById('evercookie_hidden');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.id = 'evercookie_hidden';
-                document.body.appendChild(hiddenInput);
-            }
-            hiddenInput.value = `${name}=${value}`;
         }
         
-        async function getEvercookie(name) {
-            // Cookie
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            if (match) return match[2];
-            
-            // localStorage
-            try { 
-                const ls = localStorage.getItem(name);
+        async function getEvercookieBan() {
+            try {
+                const cookieMatch = document.cookie.match(new RegExp('(^| )' + BAN_KEY + '=([^;]+)'));
+                if (cookieMatch) return cookieMatch[2];
+                
+                const ls = localStorage.getItem(BAN_KEY);
                 if (ls) return ls;
-            } catch(e) {}
-            
-            // sessionStorage
-            try { 
-                const ss = sessionStorage.getItem(name);
+                
+                const ss = sessionStorage.getItem(BAN_KEY);
                 if (ss) return ss;
-            } catch(e) {}
-            
-            // window.name
-            if (window.name && window.name.startsWith(`${name}=`)) {
-                return window.name.split('=')[1];
-            }
-            
-            // DOM hidden
-            const hidden = document.getElementById('evercookie_hidden');
-            if (hidden && hidden.value && hidden.value.startsWith(`${name}=`)) {
-                return hidden.value.split('=')[1];
-            }
-            
-            // IndexedDB
-            return new Promise((resolve) => {
-                try {
-                    const request = indexedDB.open('rankyDB', 1);
-                    request.onupgradeneeded = function(e) {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('banStore')) {
-                            db.createObjectStore('banStore');
-                        }
-                        resolve(null);
-                    };
-                    request.onsuccess = function(e) {
-                        const db = e.target.result;
-                        if (db.objectStoreNames.contains('banStore')) {
-                            const tx = db.transaction('banStore', 'readonly');
-                            const store = tx.objectStore('banStore');
-                            const getReq = store.get(name);
-                            getReq.onsuccess = () => {
-                                db.close();
-                                resolve(getReq.result || null);
-                            };
-                            getReq.onerror = () => {
+                
+                if (window.name && window.name.startsWith(`${BAN_KEY}=`)) {
+                    return window.name.split('=')[1];
+                }
+                
+                return new Promise((resolve) => {
+                    try {
+                        const request = indexedDB.open('rankyDB', 1);
+                        request.onsuccess = function(e) {
+                            const db = e.target.result;
+                            if (db.objectStoreNames.contains('banStore')) {
+                                const tx = db.transaction('banStore', 'readonly');
+                                const store = tx.objectStore('banStore');
+                                const getReq = store.get(BAN_KEY);
+                                getReq.onsuccess = () => {
+                                    db.close();
+                                    resolve(getReq.result || null);
+                                };
+                                getReq.onerror = () => {
+                                    db.close();
+                                    resolve(null);
+                                };
+                            } else {
                                 db.close();
                                 resolve(null);
-                            };
-                        } else {
-                            db.close();
-                            resolve(null);
-                        }
-                    };
-                    request.onerror = () => resolve(null);
-                } catch(e) {
-                    resolve(null);
-                }
-            });
+                            }
+                        };
+                        request.onerror = () => resolve(null);
+                    } catch(e) {
+                        resolve(null);
+                    }
+                });
+            } catch(e) {
+                return null;
+            }
         }
         
-        async function isEvercookieBanned() {
-            const value = await getEvercookie(BAN_KEY);
+        async function isBanned() {
+            const value = await getEvercookieBan();
             if (!value) return false;
             const bannedUntil = parseInt(value);
             return bannedUntil > Date.now();
         }
+
+        // ========== TEMA CLARO/OSCURO ==========
+        function initTheme() {
+            try {
+                const saved = getCookie('ranky_theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = saved || (prefersDark ? 'dark' : 'light');
+                if (theme === 'dark') {
+                    document.body.classList.add('dark');
+                } else {
+                    document.body.classList.remove('dark');
+                }
+            } catch(e) {
+                console.warn('Error initializing theme:', e);
+            }
+        }
         
-        async function setEvercookieBan(minutes) {
-            const bannedUntil = Date.now() + (minutes * 60 * 1000);
-            setEvercookie(BAN_KEY, bannedUntil.toString(), minutes);
+        function toggleTheme() {
+            try {
+                if (document.body.classList.contains('dark')) {
+                    document.body.classList.remove('dark');
+                    setCookie('ranky_theme', 'light', 365);
+                } else {
+                    document.body.classList.add('dark');
+                    setCookie('ranky_theme', 'dark', 365);
+                }
+            } catch(e) {
+                console.warn('Error toggling theme:', e);
+            }
+        }
+        
+        // ========== TRADUCCIONES ==========
+        const texts = {
+            en: {
+                menuTitle: "Menu", backToRoot: "🏠 Back to Root", themeLabel: "🌙 Dark mode",
+                footer: "Ranky Form • Staff Application",
+                title: "Ranky Form", subtitle: "Staff Application 2026",
+                sec1: "📋 01. Personal info", sec2: "🛠️ 02. Professional profile", sec3: "✨ 03. Motivation & experience",
+                lDiscord: "Discord *", lEmail: "Email *", lRole: "Main role *", optSelect: "Select",
+                optCoder: "Developer", optArtist: "Graphic Artist", optMusic: "Composer", optChart: "Charter",
+                lTools: "Main tools *", lAge: "Age *", lHours: "Weekly hours *", lSkill: "Skill level (0-100) *",
+                lPortfolio: "Portfolio / GitHub / GameBanana *", lExperience: "Previous experience *",
+                lMotivation: "Why join us? *", lConflict: "Conflict resolution *", lFuture: "1-year goal *",
+                verifyLabel: "🔐 Security verification", submitBtn: "📤 Submit application",
+                modalTitle: "Application sent", modalTextValid: "We will contact you from:",
+                modalTextInvalid: "⚠️ Invalid email. We cannot contact you.", contactEmail: "quasvx@outlook.es",
+                captchaHint: "🔍 Includes UPPERCASE letters and numbers. Click image if not readable.",
+                errors: { mouse: "Move your mouse first.", speed: "Too fast. Wait.", paste: "Avoid excessive pasting." }
+            },
+            es: {
+                menuTitle: "Menú", backToRoot: "🏠 Volver al Inicio", themeLabel: "🌙 Modo oscuro",
+                footer: "Ranky Form • Solicitud de Staff",
+                title: "Ranky Form", subtitle: "Solicitud de Staff 2026",
+                sec1: "📋 01. Datos personales", sec2: "🛠️ 02. Perfil profesional", sec3: "✨ 03. Motivación y experiencia",
+                lDiscord: "Discord *", lEmail: "Correo *", lRole: "Rol principal *", optSelect: "Seleccionar",
+                optCoder: "Desarrollador/a", optArtist: "Artista gráfico", optMusic: "Compositor/a", optChart: "Charter",
+                lTools: "Herramientas *", lAge: "Edad *", lHours: "Horas semanales *", lSkill: "Nivel (0-100) *",
+                lPortfolio: "Portafolio / GitHub / GameBanana *", lExperience: "Experiencia previa *",
+                lMotivation: "¿Por qué unirte? *", lConflict: "Resolver conflictos *", lFuture: "Meta a 1 año *",
+                verifyLabel: "🔐 Verificación", submitBtn: "📤 Enviar solicitud",
+                modalTitle: "Solicitud enviada", modalTextValid: "Te contactaremos desde:",
+                modalTextInvalid: "⚠️ Email inválido. No podemos contactarte.", contactEmail: "quasvx@outlook.es",
+                captchaHint: "🔍 Incluye letras MAYÚSCULAS y números. Haz clic en la imagen si no se lee bien.",
+                errors: { mouse: "Mueve el ratón primero.", speed: "Demasiado rápido. Espera.", paste: "Evita pegar en exceso." }
+            }
+        };
+        
+        let currentLang = 'es';
+        
+        function applyLanguage(lang) {
+            try {
+                currentLang = lang;
+                setCookie('ranky_lang', lang, 365);
+                const t = texts[lang];
+                if (!t) return;
+                
+                const elements = {
+                    menuTitle: 'menuTitle',
+                    backToRootItem: 'backToRootItem',
+                    themeLabel: 'themeLabel',
+                    footerCredits: 'footerCredits',
+                    title: 'title',
+                    subtitle: 'subtitle',
+                    sec1: 'sec1',
+                    sec2: 'sec2',
+                    sec3: 'sec3',
+                    lDiscord: 'lDiscord',
+                    lEmail: 'lEmail',
+                    lRole: 'lRole',
+                    optSelect: 'optSelect',
+                    optCoder: 'optCoder',
+                    optArtist: 'optArtist',
+                    optMusic: 'optMusic',
+                    optChart: 'optChart',
+                    lTools: 'lTools',
+                    lAge: 'lAge',
+                    lHours: 'lHours',
+                    lSkill: 'lSkill',
+                    lPortfolio: 'lPortfolio',
+                    lExperience: 'lExperience',
+                    lMotivation: 'lMotivation',
+                    lConflict: 'lConflict',
+                    lFuture: 'lFuture',
+                    verifyLabel: 'verifyLabel',
+                    submitBtn: 'submitBtn',
+                    modalTitle: 'modalTitle',
+                    captchaHint: 'captchaHint'
+                };
+                
+                for (const [key, id] of Object.entries(elements)) {
+                    const el = document.getElementById(id);
+                    if (el && t[key]) el.innerText = t[key];
+                }
+                
+                const menuBtn = document.getElementById('menuBtn');
+                if (menuBtn) menuBtn.innerText = lang === 'es' ? '☰ Menú' : '☰ Menu';
+            } catch(e) {
+                console.warn('Error applying language:', e);
+            }
         }
 
         // ========== CAPTCHA ==========
         let currentCaptchaCode = '';
         let captchaFailCount = 0;
-        let isBanned = false;
+        let userBanned = false;
         
-        async function checkLocalBan() {
-            isBanned = await isEvercookieBanned();
-            if (isBanned) {
+        async function checkBanStatus() {
+            userBanned = await isBanned();
+            if (userBanned) {
                 document.getElementById('submitBtn').disabled = true;
                 document.getElementById('captchaInput').disabled = true;
                 document.getElementById('refreshCaptcha').disabled = true;
@@ -786,6 +823,7 @@
         
         function drawDistortedText(code) {
             const canvas = document.getElementById('captchaImage');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const width = 260;
             const height = 80;
@@ -847,184 +885,102 @@
                 ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.6})`;
                 ctx.fillRect(Math.random() * width, Math.random() * height, 1.5, 1.5);
             }
-            
-            for (let i = 0; i < 60; i++) {
-                ctx.beginPath();
-                ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 3 + 1, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.4})`;
-                ctx.fill();
-            }
         }
         
         function refreshCaptcha() {
-            if (isBanned) return;
+            if (userBanned) return;
             currentCaptchaCode = generateRandomCode();
             drawDistortedText(currentCaptchaCode);
-            document.getElementById('captchaInput').value = '';
-            document.getElementById('captchaStatus').innerHTML = '';
+            const input = document.getElementById('captchaInput');
+            const status = document.getElementById('captchaStatus');
+            if (input) input.value = '';
+            if (status) status.innerHTML = '';
         }
         
         async function verifyCaptcha() {
-            if (isBanned) {
-                document.getElementById('captchaStatus').innerHTML = '🚫 BANEADO por 25 minutos';
-                document.getElementById('captchaStatus').className = 'captcha-status error';
+            if (userBanned) {
+                const status = document.getElementById('captchaStatus');
+                if (status) {
+                    status.innerHTML = '🚫 BANEADO por 25 minutos';
+                    status.className = 'captcha-status error';
+                }
                 return false;
             }
             
-            let userInput = document.getElementById('captchaInput').value.trim().toUpperCase();
+            const input = document.getElementById('captchaInput');
+            const status = document.getElementById('captchaStatus');
+            
+            if (!input || !status) return false;
+            
+            let userInput = input.value.trim().toUpperCase();
             
             if (!userInput) {
-                document.getElementById('captchaStatus').innerHTML = '❌ Ingresa el código';
-                document.getElementById('captchaStatus').className = 'captcha-status error';
+                status.innerHTML = '❌ Ingresa el código';
+                status.className = 'captcha-status error';
                 return false;
             }
             
             if (userInput !== currentCaptchaCode) {
                 captchaFailCount++;
-                document.getElementById('captchaStatus').innerHTML = `❌ Código incorrecto (${captchaFailCount}/5)`;
-                document.getElementById('captchaStatus').className = 'captcha-status error';
+                status.innerHTML = `❌ Código incorrecto (${captchaFailCount}/5)`;
+                status.className = 'captcha-status error';
                 refreshCaptcha();
                 
                 if (captchaFailCount >= 5) {
-                    await setEvercookieBan(25);
-                    isBanned = true;
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('captchaInput').disabled = true;
-                    document.getElementById('refreshCaptcha').disabled = true;
-                    document.getElementById('captchaStatus').innerHTML = '🚫 IP BANEADA por 25 minutos';
-                    document.getElementById('captchaStatus').className = 'captcha-status error';
+                    setEvercookieBan(25);
+                    userBanned = true;
+                    const submitBtn = document.getElementById('submitBtn');
+                    const captchaInput = document.getElementById('captchaInput');
+                    const refreshBtn = document.getElementById('refreshCaptcha');
+                    if (submitBtn) submitBtn.disabled = true;
+                    if (captchaInput) captchaInput.disabled = true;
+                    if (refreshBtn) refreshBtn.disabled = true;
+                    status.innerHTML = '🚫 IP BANEADA por 25 minutos';
+                    status.className = 'captcha-status error';
                 }
                 return false;
             }
             
             captchaFailCount = 0;
-            document.getElementById('captchaStatus').innerHTML = '✅ Verificado';
-            document.getElementById('captchaStatus').className = 'captcha-status success';
+            status.innerHTML = '✅ Verificado';
+            status.className = 'captcha-status success';
             return true;
         }
 
-        // ========== TEMA Y TRADUCCIONES ==========
-        function setCookie(name, value, days = 365) {
-            let expires = "";
-            if (days) {
-                const d = new Date();
-                d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-                expires = "; expires=" + d.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
-        }
-        
-        function getCookie(name) {
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : null;
-        }
-        
-        function initTheme() {
-            const saved = getCookie('ranky_theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = saved || (prefersDark ? 'dark' : 'light');
-            if (theme === 'dark') document.body.classList.add('dark');
-            else document.body.classList.remove('dark');
-        }
-        
-        function toggleTheme() {
-            if (document.body.classList.contains('dark')) {
-                document.body.classList.remove('dark');
-                setCookie('ranky_theme', 'light');
-            } else {
-                document.body.classList.add('dark');
-                setCookie('ranky_theme', 'dark');
-            }
-        }
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-        const texts = {
-            en: {
-                menuTitle: "Menu", backToRoot: "🏠 Back to Root", themeLabel: "🌙 Dark mode",
-                footer: "Ranky Form • Staff Application",
-                title: "Ranky Form", subtitle: "Staff Application 2026",
-                sec1: "📋 01. Personal info", sec2: "🛠️ 02. Professional profile", sec3: "✨ 03. Motivation & experience",
-                lDiscord: "Discord *", lEmail: "Email *", lRole: "Main role *", optSelect: "Select",
-                optCoder: "Developer", optArtist: "Graphic Artist", optMusic: "Composer", optChart: "Charter",
-                lTools: "Main tools *", lAge: "Age *", lHours: "Weekly hours *", lSkill: "Skill level (0-100) *",
-                lPortfolio: "Portfolio / GitHub / GameBanana *", lExperience: "Previous experience *",
-                lMotivation: "Why join us? *", lConflict: "Conflict resolution *", lFuture: "1-year goal *",
-                verifyLabel: "🔐 Security verification", submitBtn: "📤 Submit application",
-                modalTitle: "Application sent", modalTextValid: "We will contact you from:",
-                modalTextInvalid: "⚠️ Invalid email. We cannot contact you.", contactEmail: "quasvx@outlook.es",
-                captchaHint: "🔍 Includes UPPERCASE letters and numbers. Click image if not readable.",
-                errors: { mouse: "Move your mouse first.", speed: "Too fast. Wait.", paste: "Avoid excessive pasting." }
-            },
-            es: {
-                menuTitle: "Menú", backToRoot: "🏠 Volver al Inicio", themeLabel: "🌙 Modo oscuro",
-                footer: "Ranky Form • Solicitud de Staff",
-                title: "Ranky Form", subtitle: "Solicitud de Staff 2026",
-                sec1: "📋 01. Datos personales", sec2: "🛠️ 02. Perfil profesional", sec3: "✨ 03. Motivación y experiencia",
-                lDiscord: "Discord *", lEmail: "Correo *", lRole: "Rol principal *", optSelect: "Seleccionar",
-                optCoder: "Desarrollador/a", optArtist: "Artista gráfico", optMusic: "Compositor/a", optChart: "Charter",
-                lTools: "Herramientas *", lAge: "Edad *", lHours: "Horas semanales *", lSkill: "Nivel (0-100) *",
-                lPortfolio: "Portafolio / GitHub / GameBanana *", lExperience: "Experiencia previa *",
-                lMotivation: "¿Por qué unirte? *", lConflict: "Resolver conflictos *", lFuture: "Meta a 1 año *",
-                verifyLabel: "🔐 Verificación", submitBtn: "📤 Enviar solicitud",
-                modalTitle: "Solicitud enviada", modalTextValid: "Te contactaremos desde:",
-                modalTextInvalid: "⚠️ Email inválido. No podemos contactarte.", contactEmail: "quasvx@outlook.es",
-                captchaHint: "🔍 Incluye letras MAYÚSCULAS y números. Haz clic en la imagen si no se lee bien.",
-                errors: { mouse: "Mueve el ratón primero.", speed: "Demasiado rápido. Espera.", paste: "Evita pegar en exceso." }
-            }
-        };
-        
-        let currentLang = 'es';
-        function applyLanguage(lang) {
-            currentLang = lang;
-            setCookie('ranky_lang', lang);
-            const t = texts[lang];
-            document.getElementById('menuTitle').innerText = t.menuTitle;
-            document.getElementById('backToRootItem').innerHTML = t.backToRoot;
-            document.getElementById('themeLabel').innerHTML = t.themeLabel;
-            document.getElementById('footerCredits').innerText = t.footer;
-            document.getElementById('title').innerText = t.title;
-            document.getElementById('subtitle').innerText = t.subtitle;
-            document.getElementById('sec1').innerText = t.sec1;
-            document.getElementById('sec2').innerText = t.sec2;
-            document.getElementById('sec3').innerText = t.sec3;
-            document.getElementById('lDiscord').innerText = t.lDiscord;
-            document.getElementById('lEmail').innerText = t.lEmail;
-            document.getElementById('lRole').innerText = t.lRole;
-            document.getElementById('optSelect').innerText = t.optSelect;
-            document.getElementById('optCoder').innerText = t.optCoder;
-            document.getElementById('optArtist').innerText = t.optArtist;
-            document.getElementById('optMusic').innerText = t.optMusic;
-            document.getElementById('optChart').innerText = t.optChart;
-            document.getElementById('lTools').innerText = t.lTools;
-            document.getElementById('lAge').innerText = t.lAge;
-            document.getElementById('lHours').innerText = t.lHours;
-            document.getElementById('lSkill').innerText = t.lSkill;
-            document.getElementById('lPortfolio').innerText = t.lPortfolio;
-            document.getElementById('lExperience').innerText = t.lExperience;
-            document.getElementById('lMotivation').innerText = t.lMotivation;
-            document.getElementById('lConflict').innerText = t.lConflict;
-            document.getElementById('lFuture').innerText = t.lFuture;
-            document.getElementById('verifyLabel').innerText = t.verifyLabel;
-            document.getElementById('submitBtn').innerHTML = t.submitBtn;
-            document.getElementById('menuBtn').innerHTML = lang === 'es' ? '☰ Menú' : '☰ Menu';
-            document.getElementById('captchaHint').innerHTML = t.captchaHint;
-        }
-
-        // Menú lateral
+        // ========== MENÚ LATERAL ==========
         const sidebar = document.getElementById('sidebar');
         const overlayMenu = document.getElementById('menuOverlay');
-        function openMenu() { sidebar.classList.add('open'); overlayMenu.classList.add('active'); }
-        function closeMenu() { sidebar.classList.remove('open'); overlayMenu.classList.remove('active'); }
-        document.getElementById('menuBtn').addEventListener('click', openMenu);
-        document.getElementById('closeSidebarBtn').addEventListener('click', closeMenu);
-        overlayMenu.addEventListener('click', closeMenu);
-        document.getElementById('backToRootItem').addEventListener('click', () => {
-            window.location.href = 'https://rankyfnf.cc.cd';
-        });
-        document.getElementById('langEsBtn').addEventListener('click', () => applyLanguage('es'));
-        document.getElementById('langEnBtn').addEventListener('click', () => applyLanguage('en'));
+        
+        function openMenu() {
+            if (sidebar) sidebar.classList.add('open');
+            if (overlayMenu) overlayMenu.classList.add('active');
+        }
+        
+        function closeMenu() {
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlayMenu) overlayMenu.classList.remove('active');
+        }
+        
+        const menuBtn = document.getElementById('menuBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        const backToRootItem = document.getElementById('backToRootItem');
+        const langEsBtn = document.getElementById('langEsBtn');
+        const langEnBtn = document.getElementById('langEnBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        
+        if (menuBtn) menuBtn.addEventListener('click', openMenu);
+        if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeMenu);
+        if (overlayMenu) overlayMenu.addEventListener('click', closeMenu);
+        if (backToRootItem) {
+            backToRootItem.addEventListener('click', () => {
+                window.location.href = 'https://rankyfnf.cc.cd';
+            });
+        }
+        if (langEsBtn) langEsBtn.addEventListener('click', () => applyLanguage('es'));
+        if (langEnBtn) langEnBtn.addEventListener('click', () => applyLanguage('en'));
+        if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 
-        // Envío del formulario
+        // ========== ENVÍO DEL FORMULARIO ==========
         let mouseMoves = 0, pasteCount = 0, startTime = Date.now();
         document.addEventListener('mousemove', () => mouseMoves++);
         document.querySelectorAll('input, textarea').forEach(el => el.addEventListener('paste', () => pasteCount++));
@@ -1034,110 +990,124 @@
         }
 
         function closeSuccessModal() {
-            document.getElementById('successModal').style.display = 'none';
+            const modal = document.getElementById('successModal');
+            if (modal) modal.style.display = 'none';
         }
         window.closeSuccessModal = closeSuccessModal;
 
-        document.getElementById('applicationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (isBanned) {
-                alert('Estás baneado por 25 minutos. No puedes enviar el formulario.');
-                return;
-            }
-            
-            const elapsed = (Date.now() - startTime) / 1000;
-            const t = texts[currentLang];
-            const alertDiv = document.getElementById('securityAlert');
-            
-            const captchaOk = await verifyCaptcha();
-            if (!captchaOk) return;
-            
-            if (mouseMoves < 4) {
-                alertDiv.innerText = t.errors.mouse;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            if (elapsed < 5) {
-                alertDiv.innerText = t.errors.speed;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            if (pasteCount > 4) {
-                alertDiv.innerText = t.errors.paste;
-                alertDiv.style.display = 'block';
-                setTimeout(() => alertDiv.style.display = 'none', 3000);
-                return;
-            }
-            
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "...";
-            
-            try {
-                const formData = {
-                    discord: document.getElementById('discord').value,
-                    email: document.getElementById('email').value,
-                    role: document.getElementById('role').value,
-                    software: document.getElementById('software').value,
-                    age: document.getElementById('age').value,
-                    hours: document.getElementById('hours').value,
-                    skill: document.getElementById('skill').value,
-                    portfolio: document.getElementById('portfolio').value,
-                    experience: document.getElementById('experience').value,
-                    motivation: document.getElementById('motivation').value,
-                    conflict: document.getElementById('conflict').value,
-                    future: document.getElementById('future').value,
-                    lang: currentLang
-                };
+        const form = document.getElementById('applicationForm');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
                 
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'form',
-                        formData: formData
-                    })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success) {
-                    const modalMsg = document.getElementById('modalMessage');
-                    const userEmail = document.getElementById('email').value;
-                    if (isValidEmail(userEmail)) {
-                        modalMsg.innerHTML = `<p>${t.modalTextValid}</p><div class="contact-email" style="background:var(--accent-soft);padding:0.5rem;border-radius:1rem;">${t.contactEmail}</div><p>✅ Hemos recibido: <strong>${userEmail}</strong></p>`;
-                    } else {
-                        modalMsg.innerHTML = `<p>${t.modalTextInvalid}</p>`;
-                    }
-                    document.getElementById('successModal').style.display = 'flex';
-                    document.getElementById('applicationForm').reset();
-                    captchaFailCount = 0;
-                    refreshCaptcha();
-                } else {
-                    alert("Error en el envío: " + (data.msg || "Intenta de nuevo"));
-                    refreshCaptcha();
+                if (userBanned) {
+                    alert('Estás baneado por 25 minutos. No puedes enviar el formulario.');
+                    return;
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Error de red. Revisa tu conexión.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = texts[currentLang].submitBtn;
-            }
-        });
+                
+                const elapsed = (Date.now() - startTime) / 1000;
+                const t = texts[currentLang];
+                const alertDiv = document.getElementById('securityAlert');
+                
+                const captchaOk = await verifyCaptcha();
+                if (!captchaOk) return;
+                
+                if (mouseMoves < 4) {
+                    if (alertDiv) {
+                        alertDiv.innerText = t.errors.mouse;
+                        alertDiv.style.display = 'block';
+                        setTimeout(() => alertDiv.style.display = 'none', 3000);
+                    }
+                    return;
+                }
+                if (elapsed < 5) {
+                    if (alertDiv) {
+                        alertDiv.innerText = t.errors.speed;
+                        alertDiv.style.display = 'block';
+                        setTimeout(() => alertDiv.style.display = 'none', 3000);
+                    }
+                    return;
+                }
+                if (pasteCount > 4) {
+                    if (alertDiv) {
+                        alertDiv.innerText = t.errors.paste;
+                        alertDiv.style.display = 'block';
+                        setTimeout(() => alertDiv.style.display = 'none', 3000);
+                    }
+                    return;
+                }
+                
+                const btn = document.getElementById('submitBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "...";
+                }
+                
+                try {
+                    const formData = {
+                        discord: document.getElementById('discord')?.value || '',
+                        email: document.getElementById('email')?.value || '',
+                        role: document.getElementById('role')?.value || '',
+                        software: document.getElementById('software')?.value || '',
+                        age: document.getElementById('age')?.value || '',
+                        hours: document.getElementById('hours')?.value || '',
+                        skill: document.getElementById('skill')?.value || '',
+                        portfolio: document.getElementById('portfolio')?.value || '',
+                        experience: document.getElementById('experience')?.value || '',
+                        motivation: document.getElementById('motivation')?.value || '',
+                        conflict: document.getElementById('conflict')?.value || '',
+                        future: document.getElementById('future')?.value || '',
+                        lang: currentLang
+                    };
+                    
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'form', formData: formData })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        const modalMsg = document.getElementById('modalMessage');
+                        const userEmail = document.getElementById('email')?.value || '';
+                        if (isValidEmail(userEmail)) {
+                            modalMsg.innerHTML = `<p>${t.modalTextValid}</p><div class="contact-email" style="background:var(--accent-soft);padding:0.5rem;border-radius:1rem;">${t.contactEmail}</div><p>✅ Hemos recibido: <strong>${userEmail}</strong></p>`;
+                        } else {
+                            modalMsg.innerHTML = `<p>${t.modalTextInvalid}</p>`;
+                        }
+                        const modal = document.getElementById('successModal');
+                        if (modal) modal.style.display = 'flex';
+                        if (form) form.reset();
+                        captchaFailCount = 0;
+                        refreshCaptcha();
+                    } else {
+                        alert("Error en el envío: " + (data.msg || "Intenta de nuevo"));
+                        refreshCaptcha();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Error de red. Revisa tu conexión.");
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = texts[currentLang].submitBtn;
+                    }
+                }
+            });
+        }
 
-        // Inicializar
+        // ========== INICIALIZACIÓN ==========
         initTheme();
         const savedLang = getCookie('ranky_lang');
         applyLanguage(savedLang === 'en' ? 'en' : 'es');
         refreshCaptcha();
-        checkLocalBan();
+        checkBanStatus();
         
-        document.getElementById('refreshCaptcha').addEventListener('click', () => refreshCaptcha());
-        document.getElementById('captchaCanvas').addEventListener('click', () => refreshCaptcha());
+        const refreshBtn = document.getElementById('refreshCaptcha');
+        const captchaCanvas = document.getElementById('captchaCanvas');
+        if (refreshBtn) refreshBtn.addEventListener('click', () => refreshCaptcha());
+        if (captchaCanvas) captchaCanvas.addEventListener('click', () => refreshCaptcha());
     </script>
 </body>
 </html>
