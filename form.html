@@ -367,9 +367,51 @@
             body { padding: 1rem; }
             .col-md-6, .col-md-4 { min-width: 100%; }
         }
+        /* Anti-debug: blur cuando se abre consola */
+        body.console-open {
+            filter: blur(20px);
+            pointer-events: none;
+        }
+        .anti-debug-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        .anti-debug-overlay.active {
+            display: flex;
+        }
+        .anti-debug-overlay p {
+            color: white;
+            font-size: 1.2rem;
+        }
+        .anti-debug-overlay button {
+            background: #3b82f6;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            color: white;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="anti-debug-overlay" id="antiDebugOverlay">
+        <p>🚫 <strong>Consola detectada</strong></p>
+        <p>Por seguridad, la página se ha bloqueado.</p>
+        <p>Recarga la página para continuar.</p>
+        <button onclick="location.reload()">🔄 Recargar</button>
+    </div>
+
     <div class="menu-corner">
         <button class="menu-btn" id="menuBtn">☰ Menú</button>
     </div>
@@ -473,7 +515,7 @@
                     </div>
                 </div>
 
-                <!-- CAPTCHA DISTORSIONADO -->
+                <!-- CAPTCHA -->
                 <div class="captcha-box">
                     <label class="form-label" id="verifyLabel">🔐 Verificación de seguridad</label>
                     <div class="captcha-canvas" id="captchaCanvas" title="Haz clic para actualizar">
@@ -501,9 +543,105 @@
     </div>
 
     <script>
+        // ========== PROTECCIÓN DE CONSOLA Y ANTIDEBUG ==========
+        (function() {
+            // Detectar si la consola está abierta
+            let devToolsOpen = false;
+            const element = new Image();
+            
+            function detectDevTools() {
+                const threshold = 160;
+                const widthDiff = window.outerWidth - window.innerWidth > threshold;
+                const heightDiff = window.outerHeight - window.innerHeight > threshold;
+                
+                if (widthDiff || heightDiff) {
+                    if (!devToolsOpen) {
+                        devToolsOpen = true;
+                        document.getElementById('antiDebugOverlay')?.classList.add('active');
+                        document.body.classList.add('console-open');
+                    }
+                } else {
+                    if (devToolsOpen) {
+                        devToolsOpen = false;
+                        // No remover overlay automáticamente, requiere recarga
+                    }
+                }
+            }
+            
+            setInterval(detectDevTools, 1000);
+            
+            // Bloquear métodos comunes de desbaneo
+            const originalLocalStorageRemove = localStorage.removeItem;
+            localStorage.removeItem = function(key) {
+                if (key === 'ranky_banned_until') {
+                    console.warn('[Seguridad] No puedes eliminar el ban');
+                    return;
+                }
+                return originalLocalStorageRemove.call(this, key);
+            };
+            
+            const originalSessionStorageRemove = sessionStorage.removeItem;
+            sessionStorage.removeItem = function(key) {
+                if (key === 'ranky_banned_until') {
+                    console.warn('[Seguridad] No puedes eliminar el ban');
+                    return;
+                }
+                return originalSessionStorageRemove.call(this, key);
+            };
+            
+            // Bloquear modificación de cookie
+            const originalCookieSetter = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie')?.set;
+            Object.defineProperty(document, 'cookie', {
+                get: function() {
+                    return originalCookieSetter ? originalCookieSetter.call(this) : document.cookie;
+                },
+                set: function(value) {
+                    if (value.includes('ranky_banned_until') && (value.includes('expires=Thu, 01 Jan 1970') || value.includes('max-age=0'))) {
+                        console.warn('[Seguridad] No puedes eliminar el ban');
+                        return;
+                    }
+                    if (originalCookieSetter) {
+                        originalCookieSetter.call(document, value);
+                    }
+                }
+            });
+            
+            // Bloquear window.name
+            const originalWindowName = Object.getOwnPropertyDescriptor(window, 'name');
+            Object.defineProperty(window, 'name', {
+                get: function() {
+                    return originalWindowName?.get ? originalWindowName.get.call(window) : window.name;
+                },
+                set: function(value) {
+                    if (value === '' && window.name.includes('ranky_banned_until')) {
+                        console.warn('[Seguridad] No puedes eliminar el ban');
+                        return;
+                    }
+                    if (originalWindowName?.set) {
+                        originalWindowName.set.call(window, value);
+                    } else {
+                        window.name = value;
+                    }
+                }
+            });
+            
+            // Prevenir que scripts externos inyecten código de desbaneo
+            const originalEval = window.eval;
+            window.eval = function(str) {
+                if (typeof str === 'string' && (str.includes('localStorage.removeItem') || 
+                    str.includes('sessionStorage.removeItem') ||
+                    str.includes('cookie') ||
+                    str.includes('clearEvercookieBan'))) {
+                    console.warn('[Seguridad] Script bloqueado');
+                    return null;
+                }
+                return originalEval.call(this, str);
+            };
+        })();
+
         const API_URL = 'https://ranky.api.otp.cc.cd/api/api';
 
-        // ========== EVERCOOKIE (8 métodos de almacenamiento) ==========
+        // ========== EVERCOOKIE COMPLETA (incluyendo IndexedDB) ==========
         const BAN_KEY = 'ranky_banned_until';
         
         function setEvercookie(name, value, minutes) {
@@ -511,10 +649,10 @@
             expireDate.setTime(expireDate.getTime() + (minutes * 60 * 1000));
             
             document.cookie = `${name}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
-            
             try { localStorage.setItem(name, value); } catch(e) {}
             try { sessionStorage.setItem(name, value); } catch(e) {}
             
+            // IndexedDB
             try {
                 const request = indexedDB.open('rankyDB', 1);
                 request.onupgradeneeded = function(e) {
@@ -544,32 +682,45 @@
             hiddenInput.value = `${name}=${value}`;
         }
         
-        function getEvercookie(name) {
+        async function getEvercookie(name) {
+            // Cookie
             const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            if (match) return Promise.resolve(match[2]);
+            if (match) return match[2];
             
+            // localStorage
             try { 
                 const ls = localStorage.getItem(name);
-                if (ls) return Promise.resolve(ls);
+                if (ls) return ls;
             } catch(e) {}
             
+            // sessionStorage
             try { 
                 const ss = sessionStorage.getItem(name);
-                if (ss) return Promise.resolve(ss);
+                if (ss) return ss;
             } catch(e) {}
             
+            // window.name
             if (window.name && window.name.startsWith(`${name}=`)) {
-                return Promise.resolve(window.name.split('=')[1]);
+                return window.name.split('=')[1];
             }
             
+            // DOM hidden
             const hidden = document.getElementById('evercookie_hidden');
             if (hidden && hidden.value && hidden.value.startsWith(`${name}=`)) {
-                return Promise.resolve(hidden.value.split('=')[1]);
+                return hidden.value.split('=')[1];
             }
             
+            // IndexedDB
             return new Promise((resolve) => {
                 try {
                     const request = indexedDB.open('rankyDB', 1);
+                    request.onupgradeneeded = function(e) {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('banStore')) {
+                            db.createObjectStore('banStore');
+                        }
+                        resolve(null);
+                    };
                     request.onsuccess = function(e) {
                         const db = e.target.result;
                         if (db.objectStoreNames.contains('banStore')) {
@@ -608,7 +759,7 @@
             setEvercookie(BAN_KEY, bannedUntil.toString(), minutes);
         }
 
-        // ========== CAPTCHA EXTREMADAMENTE DISTORSIONADO ==========
+        // ========== CAPTCHA ==========
         let currentCaptchaCode = '';
         let captchaFailCount = 0;
         let isBanned = false;
@@ -642,14 +793,12 @@
             canvas.width = width;
             canvas.height = height;
             
-            // 1. Fondo con gradiente
             const grad = ctx.createLinearGradient(0, 0, width, height);
             grad.addColorStop(0, '#1a1a2e');
             grad.addColorStop(1, '#16213e');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, width, height);
             
-            // 2. Patrón de fondo (cuadrícula tenue)
             ctx.strokeStyle = 'rgba(100, 100, 150, 0.2)';
             ctx.lineWidth = 0.5;
             for (let i = 0; i < width; i += 15) {
@@ -663,7 +812,6 @@
                 ctx.stroke();
             }
             
-            // 3. LETRAS con distorsión EXTREMA (se dibujan PRIMERO)
             const chars = code.split('');
             const startX = 35;
             const startY = 52;
@@ -686,7 +834,6 @@
                 ctx.restore();
             });
             
-            // 4. Líneas onduladas ENCIMA de las letras
             for (let i = 0; i < 15; i++) {
                 ctx.beginPath();
                 ctx.moveTo(Math.random() * width, Math.random() * height);
@@ -696,63 +843,16 @@
                 ctx.stroke();
             }
             
-            // 5. Ondas seno ENCIMA
-            for (let i = 0; i < 6; i++) {
-                ctx.beginPath();
-                const yOffset = 15 + i * 12;
-                ctx.moveTo(0, yOffset);
-                for (let x = 0; x < width; x += 8) {
-                    ctx.lineTo(x, yOffset + Math.sin(x * 0.06 + i) * 8);
-                }
-                ctx.strokeStyle = `rgba(140, 170, 210, 0.45)`;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-            }
-            
-            // 6. Ondas diagonales
-            for (let i = 0; i < 8; i++) {
-                ctx.beginPath();
-                const offset = i * 30;
-                ctx.moveTo(offset, 0);
-                for (let y = 0; y < height; y += 5) {
-                    ctx.lineTo(offset + Math.sin(y * 0.1) * 15, y);
-                }
-                ctx.strokeStyle = `rgba(160, 160, 200, 0.3)`;
-                ctx.stroke();
-            }
-            
-            // 7. Puntos de ruido ENCIMA
             for (let i = 0; i < 500; i++) {
                 ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.6})`;
                 ctx.fillRect(Math.random() * width, Math.random() * height, 1.5, 1.5);
             }
             
-            // 8. Círculos pequeños ENCIMA
             for (let i = 0; i < 60; i++) {
                 ctx.beginPath();
                 ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 3 + 1, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.4})`;
                 ctx.fill();
-            }
-            
-            // 9. Manchas/blobs ENCIMA
-            for (let i = 0; i < 15; i++) {
-                ctx.beginPath();
-                const blobX = Math.random() * width;
-                const blobY = Math.random() * height;
-                ctx.ellipse(blobX, blobY, Math.random() * 8 + 2, Math.random() * 6 + 2, Math.random() * Math.PI, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(100, 100, 160, ${Math.random() * 0.3})`;
-                ctx.fill();
-            }
-            
-            // 10. Líneas de ruido finales
-            for (let i = 0; i < 12; i++) {
-                ctx.beginPath();
-                ctx.moveTo(Math.random() * width, Math.random() * height);
-                ctx.lineTo(Math.random() * width, Math.random() * height);
-                ctx.strokeStyle = `rgba(255, 255, 255, 0.25)`;
-                ctx.lineWidth = Math.random() * 1.5 + 0.5;
-                ctx.stroke();
             }
         }
         
