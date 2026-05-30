@@ -1,1 +1,4 @@
-
+/rankyqr        /qrutil       301
+/form           /apply        301
+/apply          /form         200
+/qrutil         /rankyqr      200
