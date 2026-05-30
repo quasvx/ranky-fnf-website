@@ -589,7 +589,7 @@
             }
         }
         
-        // ========== EVERCOOKIE PARA BAN ==========
+             // ========== EVERCOOKIE PARA BAN (CORREGIDA) ==========
         const BAN_KEY = 'ranky_banned_until';
         
         function setEvercookieBan(minutes) {
@@ -599,49 +599,95 @@
             expireDate.setTime(expireDate.getTime() + (minutes * 60 * 1000));
             
             try {
+                // Cookie
                 document.cookie = `${BAN_KEY}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
+                
+                // localStorage
                 localStorage.setItem(BAN_KEY, value);
+                
+                // sessionStorage
                 sessionStorage.setItem(BAN_KEY, value);
+                
+                // window.name
                 window.name = `${BAN_KEY}=${value}`;
                 
                 // IndexedDB
-                const request = indexedDB.open('rankyDB', 1);
-                request.onupgradeneeded = function(e) {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains('banStore')) {
-                        db.createObjectStore('banStore');
-                    }
-                };
-                request.onsuccess = function(e) {
-                    const db = e.target.result;
-                    const tx = db.transaction('banStore', 'readwrite');
-                    const store = tx.objectStore('banStore');
-                    store.put(value, BAN_KEY);
-                    tx.oncomplete = () => db.close();
-                };
-            } catch(e) {}
+                try {
+                    const request = indexedDB.open('rankyDB', 2);
+                    
+                    request.onupgradeneeded = function(event) {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('banStore')) {
+                            db.createObjectStore('banStore');
+                            console.log('📦 IndexedDB: store creado');
+                        }
+                    };
+                    
+                    request.onsuccess = function(event) {
+                        const db = event.target.result;
+                        if (db.objectStoreNames.contains('banStore')) {
+                            const tx = db.transaction('banStore', 'readwrite');
+                            const store = tx.objectStore('banStore');
+                            store.put(value, BAN_KEY);
+                            tx.oncomplete = () => {
+                                db.close();
+                                console.log('✅ IndexedDB: ban guardado');
+                            };
+                            tx.onerror = (e) => {
+                                console.warn('IndexedDB transaction error:', e);
+                                db.close();
+                            };
+                        } else {
+                            console.warn('IndexedDB: objectStore no encontrado');
+                            db.close();
+                        }
+                    };
+                    
+                    request.onerror = function(event) {
+                        console.warn('IndexedDB open error:', event);
+                    };
+                } catch(e) {
+                    console.warn('IndexedDB error:', e);
+                }
+            } catch(e) {
+                console.warn('Error setting ban:', e);
+            }
         }
         
-        async function getEvercookieBan() {
+            async function getEvercookieBan() {
             try {
+                // Cookie
                 const cookieMatch = document.cookie.match(new RegExp('(^| )' + BAN_KEY + '=([^;]+)'));
                 if (cookieMatch) return cookieMatch[2];
                 
+                // localStorage
                 const ls = localStorage.getItem(BAN_KEY);
                 if (ls) return ls;
                 
+                // sessionStorage
                 const ss = sessionStorage.getItem(BAN_KEY);
                 if (ss) return ss;
                 
+                // window.name
                 if (window.name && window.name.startsWith(`${BAN_KEY}=`)) {
                     return window.name.split('=')[1];
                 }
                 
-                return new Promise((resolve) => {
-                    try {
-                        const request = indexedDB.open('rankyDB', 1);
-                        request.onsuccess = function(e) {
-                            const db = e.target.result;
+                // IndexedDB - lectura segura
+                try {
+                    const value = await new Promise((resolve) => {
+                        const request = indexedDB.open('rankyDB', 2);
+                        
+                        request.onupgradeneeded = function(event) {
+                            const db = event.target.result;
+                            if (!db.objectStoreNames.contains('banStore')) {
+                                db.createObjectStore('banStore');
+                            }
+                            resolve(null);
+                        };
+                        
+                        request.onsuccess = function(event) {
+                            const db = event.target.result;
                             if (db.objectStoreNames.contains('banStore')) {
                                 const tx = db.transaction('banStore', 'readonly');
                                 const store = tx.objectStore('banStore');
@@ -659,11 +705,15 @@
                                 resolve(null);
                             }
                         };
+                        
                         request.onerror = () => resolve(null);
-                    } catch(e) {
-                        resolve(null);
-                    }
-                });
+                    });
+                    if (value) return value;
+                } catch(e) {
+                    console.warn('IndexedDB read error:', e);
+                }
+                
+                return null;
             } catch(e) {
                 return null;
             }
