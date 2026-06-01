@@ -367,45 +367,9 @@
             body { padding: 1rem; }
             .col-md-6, .col-md-4 { min-width: 100%; }
         }
-        .anti-debug-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 10000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
-        }
-        .anti-debug-overlay.active {
-            display: flex;
-        }
-        .anti-debug-overlay p {
-            color: white;
-            font-size: 1.2rem;
-        }
-        .anti-debug-overlay button {
-            background: #3b82f6;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
-            color: white;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-    <div class="anti-debug-overlay" id="antiDebugOverlay">
-        <p>🚫 <strong>Consola detectada</strong></p>
-        <p>Por seguridad, la página se ha bloqueado.</p>
-        <button onclick="location.reload()">🔄 Recargar</button>
-    </div>
-
     <div class="menu-corner">
         <button class="menu-btn" id="menuBtn">☰ Menú</button>
     </div>
@@ -536,29 +500,28 @@
     </div>
 
     <script>
-        // ========== PROTECCIÓN DE CONSOLA ==========
+        // ========== INTERCEPTAR CONSOLA ==========
         (function() {
-            let devToolsOpen = false;
+            const na = () => console.log('%cna na na 😏🥀🙏', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
             
-            function detectDevTools() {
-                const threshold = 160;
-                const widthDiff = window.outerWidth - window.innerWidth > threshold;
-                const heightDiff = window.outerHeight - window.innerHeight > threshold;
-                
-                if (widthDiff || heightDiff) {
-                    if (!devToolsOpen) {
-                        devToolsOpen = true;
-                        const overlay = document.getElementById('antiDebugOverlay');
-                        if (overlay) overlay.classList.add('active');
-                    }
-                } else {
-                    if (devToolsOpen) {
-                        devToolsOpen = false;
-                    }
+            console.log = na;
+            console.warn = na;
+            console.error = na;
+            console.info = na;
+            console.debug = na;
+            
+            const originalEval = window.eval;
+            window.eval = function() { na(); return null; };
+            
+            window.Function = function() { na(); return function() {}; };
+            
+            setInterval(() => {
+                if (window.console.clear) {
+                    console.clear();
                 }
-            }
+            }, 100);
             
-            setInterval(detectDevTools, 1000);
+            console.log('%c🔒 Consola bloqueada', 'color: #ef4444; font-size: 12px;');
         })();
 
         const API_URL = 'https://ranky.api.otp.cc.cd/api/api';
@@ -573,9 +536,7 @@
                     expires = "; expires=" + d.toUTCString();
                 }
                 document.cookie = name + "=" + (value || "") + expires + "; path=/";
-            } catch(e) {
-                console.warn('Error setting cookie:', e);
-            }
+            } catch(e) {}
         }
         
         function getCookie(name) {
@@ -584,12 +545,11 @@
                 const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
                 return match ? match[2] : null;
             } catch(e) {
-                console.warn('Error getting cookie:', e);
                 return null;
             }
         }
         
-             // ========== EVERCOOKIE PARA BAN (CORREGIDA) ==========
+        // ========== EVERCOOKIE PARA BAN ==========
         const BAN_KEY = 'ranky_banned_until';
         
         function setEvercookieBan(minutes) {
@@ -599,93 +559,53 @@
             expireDate.setTime(expireDate.getTime() + (minutes * 60 * 1000));
             
             try {
-                // Cookie
                 document.cookie = `${BAN_KEY}=${value}; expires=${expireDate.toUTCString()}; path=/; SameSite=Lax`;
-                
-                // localStorage
                 localStorage.setItem(BAN_KEY, value);
-                
-                // sessionStorage
                 sessionStorage.setItem(BAN_KEY, value);
-                
-                // window.name
                 window.name = `${BAN_KEY}=${value}`;
                 
-                // IndexedDB
                 try {
                     const request = indexedDB.open('rankyDB', 2);
-                    
                     request.onupgradeneeded = function(event) {
                         const db = event.target.result;
                         if (!db.objectStoreNames.contains('banStore')) {
                             db.createObjectStore('banStore');
-                            console.log('📦 IndexedDB: store creado');
                         }
                     };
-                    
                     request.onsuccess = function(event) {
                         const db = event.target.result;
                         if (db.objectStoreNames.contains('banStore')) {
                             const tx = db.transaction('banStore', 'readwrite');
                             const store = tx.objectStore('banStore');
                             store.put(value, BAN_KEY);
-                            tx.oncomplete = () => {
-                                db.close();
-                                console.log('✅ IndexedDB: ban guardado');
-                            };
-                            tx.onerror = (e) => {
-                                console.warn('IndexedDB transaction error:', e);
-                                db.close();
-                            };
+                            tx.oncomplete = () => db.close();
                         } else {
-                            console.warn('IndexedDB: objectStore no encontrado');
                             db.close();
                         }
                     };
-                    
-                    request.onerror = function(event) {
-                        console.warn('IndexedDB open error:', event);
-                    };
-                } catch(e) {
-                    console.warn('IndexedDB error:', e);
-                }
-            } catch(e) {
-                console.warn('Error setting ban:', e);
-            }
+                } catch(e) {}
+            } catch(e) {}
         }
         
-            async function getEvercookieBan() {
+        async function getEvercookieBan() {
             try {
-                // Cookie
                 const cookieMatch = document.cookie.match(new RegExp('(^| )' + BAN_KEY + '=([^;]+)'));
                 if (cookieMatch) return cookieMatch[2];
                 
-                // localStorage
                 const ls = localStorage.getItem(BAN_KEY);
                 if (ls) return ls;
                 
-                // sessionStorage
                 const ss = sessionStorage.getItem(BAN_KEY);
                 if (ss) return ss;
                 
-                // window.name
                 if (window.name && window.name.startsWith(`${BAN_KEY}=`)) {
                     return window.name.split('=')[1];
                 }
                 
-                // IndexedDB - lectura segura
                 try {
                     const value = await new Promise((resolve) => {
                         const request = indexedDB.open('rankyDB', 2);
-                        
-                        request.onupgradeneeded = function(event) {
-                            const db = event.target.result;
-                            if (!db.objectStoreNames.contains('banStore')) {
-                                db.createObjectStore('banStore');
-                            }
-                            resolve(null);
-                        };
-                        
+                        request.onupgradeneeded = function() { resolve(null); };
                         request.onsuccess = function(event) {
                             const db = event.target.result;
                             if (db.objectStoreNames.contains('banStore')) {
@@ -705,13 +625,10 @@
                                 resolve(null);
                             }
                         };
-                        
                         request.onerror = () => resolve(null);
                     });
                     if (value) return value;
-                } catch(e) {
-                    console.warn('IndexedDB read error:', e);
-                }
+                } catch(e) {}
                 
                 return null;
             } catch(e) {
@@ -737,9 +654,8 @@
                 } else {
                     document.body.classList.remove('dark');
                 }
-            } catch(e) {
-                console.warn('Error initializing theme:', e);
-            }
+                setCookie('ranky_theme', theme, 365);
+            } catch(e) {}
         }
         
         function toggleTheme() {
@@ -751,9 +667,7 @@
                     document.body.classList.add('dark');
                     setCookie('ranky_theme', 'dark', 365);
                 }
-            } catch(e) {
-                console.warn('Error toggling theme:', e);
-            }
+            } catch(e) {}
         }
         
         // ========== TRADUCCIONES ==========
@@ -841,9 +755,7 @@
                 
                 const menuBtn = document.getElementById('menuBtn');
                 if (menuBtn) menuBtn.innerText = lang === 'es' ? '☰ Menú' : '☰ Menu';
-            } catch(e) {
-                console.warn('Error applying language:', e);
-            }
+            } catch(e) {}
         }
 
         // ========== CAPTCHA ==========
@@ -1135,10 +1047,8 @@
                         alert("Error en el envío: " + (data.msg || "Intenta de nuevo"));
                         refreshCaptcha();
                     }
-                } catch (err) {
-                    console.error(err);
-                    alert("Error de red. Revisa tu conexión.");
-                } finally {
+                } catch (err) {}
+                finally {
                     if (btn) {
                         btn.disabled = false;
                         btn.innerText = texts[currentLang].submitBtn;
