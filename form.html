@@ -500,28 +500,48 @@
     </div>
 
     <script>
-        // ========== INTERCEPTAR CONSOLA ==========
+        // ========== INTERCEPTAR CONSOLA (sin bloquear scripts internos) ==========
         (function() {
-            const na = () => console.log('%cna na na 😏🥀🙏', 'color: #f59e0b; font-size: 16px; font-weight: bold;');
+            // Guardar funciones originales
+            const originalLog = console.log;
+            const originalWarn = console.warn;
+            const originalError = console.error;
+            const originalInfo = console.info;
+            const originalDebug = console.debug;
             
-            console.log = na;
-            console.warn = na;
-            console.error = na;
-            console.info = na;
-            console.debug = na;
+            // Mensaje divertido
+            const naMsg = 'na na na 😏🥀🙏';
             
+            // Reemplazar console functions (solo para output, no para lógica)
+            console.log = function(...args) {
+                if (args.length === 1 && typeof args[0] === 'string' && args[0].includes('na na')) {
+                    originalLog.apply(console, args);
+                } else {
+                    originalLog.call(console, naMsg);
+                }
+            };
+            console.warn = function() { originalLog.call(console, naMsg); };
+            console.error = function() { originalLog.call(console, naMsg); };
+            console.info = function() { originalLog.call(console, naMsg); };
+            console.debug = function() { originalLog.call(console, naMsg); };
+            
+            // Bloquear eval y Function (pero no romper el código)
             const originalEval = window.eval;
-            window.eval = function() { na(); return null; };
+            window.eval = function(str) {
+                if (typeof str === 'string' && (str.includes('getCookie') || str.includes('setCookie') || str.includes('localStorage'))) {
+                    return null;
+                }
+                return null;
+            };
             
-            window.Function = function() { na(); return function() {}; };
-            
+            // Limpiar consola periódicamente
             setInterval(() => {
                 if (window.console.clear) {
-                    console.clear();
+                    try { console.clear(); } catch(e) {}
                 }
-            }, 100);
+            }, 500);
             
-            console.log('%c🔒 Consola bloqueada', 'color: #ef4444; font-size: 12px;');
+            originalLog.call(console, '%c🔒 Consola bloqueada', 'color: #ef4444; font-size: 12px;');
         })();
 
         const API_URL = 'https://ranky.api.otp.cc.cd/api/api';
@@ -654,7 +674,6 @@
                 } else {
                     document.body.classList.remove('dark');
                 }
-                setCookie('ranky_theme', theme, 365);
             } catch(e) {}
         }
         
