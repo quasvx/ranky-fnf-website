@@ -18,7 +18,7 @@ Seguridad de Datos: La **Ranky API** reside en un servidor privado e independien
 Hub de Identidad: Sistema de verificación de identidad integrado en el index.
 Formulario Avanzado: Proceso de reclutamiento con validación de datos en tiempo real.
 Filtros Anti-Spam: Análisis de riesgos (Risk Scoring) basado en telemetría y contenido para bloquear bots.
-Redundancia de Seguridad: Implementación de Cloudflare Turnstile con fallback automático a reCAPTCHA v2.
+Redundancia de Seguridad: Implementación de Cloudflare Bot Fight Mode y un puzzle de letras distorsionadas
 
 ---
 
@@ -37,7 +37,7 @@ Data Security: The **Ranky API** is hosted on a separate private server to prote
 Identity Hub: Built-in identity verification system on the index page.
 Advanced Forms: Recruitment process with real-time data validation.
 Anti-Spam Filters: Risk Scoring analysis based on telemetry and content to prevent bot abuse.
-Security Redundancy: Implementation of Cloudflare Turnstile with an automatic reCAPTCHA v2 fallback.
+Security Redundancy: Implementation of Cloudflare Bot Fight Mode with a puzzle of distortioned letters
 
 ---
 
