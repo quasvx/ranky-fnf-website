@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es" id="html-tag">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate RankyFNF</title>
+    <!-- Favicon de Bitcoin -->
+    <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Animaciones y estilos personalizados -->
+    <style>
+        /* Fondo animado con gradiente */
+        body { 
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #312e81);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white; 
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* Animaciones de entrada suave */
+        .fade-in-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Efecto de pulso en el logo */
+        .glow-avatar:hover {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        /* Efecto de cristal (Glassmorphism) */
+        .glass {
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Scrollbar personalizada para el menú de monedas */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2); 
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.5); 
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 0.8); 
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen py-10 relative overflow-x-hidden font-sans">
+
+    <!-- Navegación Superior -->
+    <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 fade-in-up">
+        
+        <!-- Controles Izquierdos (Regresar e Idioma) -->
+        <div class="flex items-center gap-3">
+            <button onclick="goBack()" class="flex items-center gap-2 text-gray-300 hover:text-white transition-colors bg-gray-800 bg-opacity-50 px-4 py-2 rounded-full backdrop-blur-sm border border-gray-700 hover:border-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                <span data-i18n="back">Regresar</span>
+            </button>
+
+            <div class="flex gap-2 bg-gray-800 bg-opacity-50 p-1 rounded-full backdrop-blur-sm border border-gray-700">
+                <button onclick="setLanguage('es')" id="btn-es" class="px-3 py-1 rounded-full bg-yellow-500 text-gray-900 font-bold transition-colors text-sm">ES</button>
+                <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 rounded-full text-gray-400 hover:text-white transition-colors text-sm font-bold">EN</button>
+            </div>
+        </div>
+
+        <!-- Botón Derecho (Menú de Monedas) -->
+        <button onclick="toggleCurrencyMenu()" class="p-2 bg-gray-800 bg-opacity-50 rounded-full backdrop-blur-sm border border-gray-700 hover:border-gray-500 hover:text-white text-gray-300 transition-colors" title="Cambiar Moneda Local">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Contenedor Principal AMPLIADO (max-w-md en lugar de max-w-sm) -->
+    <div class="glass p-8 rounded-3xl shadow-2xl max-w-md w-full text-center fade-in-up relative z-10 mx-4">
+        
+        <!-- Perfil -->
+        <div class="relative inline-block mb-4">
+            <img src="https://www.rankyfnf.cc.cd/rankylogoalt.jpeg" 
+                 alt="RankyFNF Logo" 
+                 class="w-24 h-24 mx-auto rounded-full border-4 border-yellow-500 glow-avatar cursor-pointer object-cover">
+            <div class="absolute bottom-0 right-0 bg-yellow-500 rounded-full p-1 border-2 border-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-900" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A12.014 12.014 0 0010.337 2.1a1 1 0 01-1.378-.293l-1.31-1.966a1 1 0 00-1.572-.086l-2.035 2.035a1 1 0 00-.086 1.572l1.966 1.31a1 1 0 01.293 1.378A12.014 12.014 0 001.046 8.7a1 1 0 00-1.044 1.157 12.01 12.01 0 001.127 2.01 1 1 0 01-.194 1.401l-2.181 1.636a1 1 0 00-.17 1.57l1.71 1.71a1 1 0 001.57-.17l1.636-2.181a1 1 0 011.401-.194 12.01 12.01 0 002.01 1.127 1 1 0 001.157-1.044 12.014 12.014 0 00-1.054-2.585 1 1 0 01.293-1.378l1.966-1.31a1 1 0 00.086-1.572l-2.035-2.035a1 1 0 00-1.572.086l-1.31 1.966a1 1 0 01-1.378.293 12.014 12.014 0 001.054-2.585 1 1 0 00-1.044-1.157zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold mb-1 tracking-tight" data-i18n="title">Donate RankyFNF</h1>
+        <p class="text-gray-400 text-sm mb-1" data-i18n="subtitle">Apoya mediante Lightning Network ⚡</p>
+        
+        <p class="text-gray-300 text-xs italic mb-5" data-i18n="helpText">
+            Help our authors & co-authors make the mod more useful
+        </p>
+        
+        <p class="text-yellow-400 font-mono text-sm mb-6 bg-black bg-opacity-40 p-2 rounded-xl inline-block border border-gray-700 shadow-inner">
+            donate@rankyfnf.cc.cd
+        </p>
+
+        <!-- Sección de Generación de Invoice -->
+        <div class="bg-gray-800 bg-opacity-60 p-5 rounded-2xl mb-6 text-left border border-gray-600 shadow-lg transition-all duration-300 hover:border-yellow-500/50">
+            <div class="flex justify-between items-end mb-2">
+                <label for="amount" class="block text-sm font-medium text-gray-300" data-i18n="amountLabel">Cantidad:</label>
+                <span class="text-xs text-gray-400 font-mono" data-i18n="amountLimits">Mín: 100 | Máx: 25M Sats</span>
+            </div>
+            
+            <div class="flex gap-2 mb-2">
+                <input type="number" id="amount" placeholder="1000" step="any" oninput="calcularConversion()"
+                       class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all">
+                
+                <!-- Selector (SATS / Moneda Local Dinámica) -->
+                <select id="currency" onchange="calcularConversion()" 
+                        class="bg-gray-900 text-yellow-400 font-bold rounded-xl px-2 border border-gray-600 focus:outline-none focus:border-yellow-500 cursor-pointer">
+                    <option value="SATS">SATS</option>
+                    <option value="FIAT" id="opt-fiat">USD ($)</option>
+                </select>
+
+                <button onclick="generarInvoice()" id="btn-generate"
+                        class="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-gray-900 font-bold py-3 px-5 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-md">
+                    <span data-i18n="btnGenerate">Generar</span>
+                </button>
+            </div>
+
+            <!-- Muestra la conversión automática -->
+            <p id="conversion-preview" class="text-xs text-yellow-400 font-mono font-semibold min-h-[16px] text-right flex items-center justify-end gap-1"></p>
+            <p id="error-msg" class="text-red-400 text-xs mt-1 hidden transition-opacity"></p>
+        </div>
+
+        <!-- Resultados del Invoice -->
+        <div id="invoice-result" class="hidden flex flex-col items-center fade-in-up">
+            <p class="text-sm text-green-400 mb-4 font-bold flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                <span data-i18n="invoiceSuccess">Invoice generado con éxito</span>
+            </p>
+            
+            <div class="bg-white p-3 rounded-2xl inline-block mb-5 shadow-lg transform transition-transform hover:scale-105">
+                <img id="invoice-qr" src="" alt="Código QR Invoice" class="w-48 h-48 rounded-lg">
+            </div>
+
+            <div class="flex flex-col gap-3 w-full">
+                <a id="pay-button" href="#" 
+                   class="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-gray-900 font-bold py-3 px-4 rounded-xl transition-all transform hover:-translate-y-1 shadow-lg w-full text-center">
+                   <span data-i18n="btnPay">Pagar Invoice</span>
+                </a>
+                
+                <input type="text" id="invoice-text" readonly 
+                       class="w-full bg-black bg-opacity-40 text-gray-400 text-xs rounded-xl p-3 border border-gray-600 cursor-pointer text-center hover:text-white transition-colors focus:outline-none"
+                       onclick="copiarInvoice(this)">
+            </div>
+        </div>
+
+        <!-- Botón por defecto -->
+        <div id="default-actions" class="flex flex-col gap-3 mt-2">
+            <button onclick="copiarDireccion()" 
+                    class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-xl transition-all border border-gray-600 hover:border-gray-500 flex items-center justify-center gap-2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span data-i18n="btnCopyAddress">Copiar Dirección</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE SELECCIÓN DE MONEDA -->
+    <div id="currency-menu" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex items-center justify-center fade-in-up backdrop-blur-sm">
+        <div class="glass p-6 rounded-3xl w-[90%] max-w-sm max-h-[80vh] flex flex-col shadow-2xl border border-gray-600">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-white" data-i18n="selectCurrencyTitle">Moneda Local</h2>
+                <button onclick="toggleCurrencyMenu()" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <div class="overflow-y-auto custom-scroll flex-1 pr-2" id="currency-list">
+                <!-- Se inyecta por JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- BANNER DE ANUNCIOS -->
+    <div id="ad-banner" class="fixed bottom-5 right-5 glass border border-yellow-500/50 text-white p-5 rounded-2xl shadow-2xl max-w-xs w-full hidden z-50 transform transition-all duration-500 translate-y-20 opacity-0">
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-[10px] uppercase tracking-wider bg-yellow-500 text-gray-900 font-extrabold px-2 py-1 rounded-md flex items-center gap-1">
+                <span class="animate-pulse h-2 w-2 bg-red-600 rounded-full inline-block"></span>
+                <span data-i18n="adLabel">Anuncio</span>
+            </span>
+            <button onclick="cerrarBanner()" class="text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700 p-1">&times;</button>
+        </div>
+        <div id="ad-content" class="text-sm leading-relaxed">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+
+    <script>
+        // --- SISTEMA MULTIMONEDA ---
+        let currentFiat = 'USD';
+        let fiatSymbol = '$';
+        let btcPriceFiat = 65000; // Valor por defecto
+
+        const availableCurrencies = [
+            { code: 'USD', name: 'US Dollar', symbol: '$' },
+            { code: 'EUR', name: 'Euro', symbol: '€' },
+            { code: 'GBP', name: 'British Pound', symbol: '£' },
+            { code: 'MXN', name: 'Peso Mexicano', symbol: '$' },
+            { code: 'ARS', name: 'Peso Argentino', symbol: '$' },
+            { code: 'COP', name: 'Peso Colombiano', symbol: '$' },
+            { code: 'CLP', name: 'Peso Chileno', symbol: '$' },
+            { code: 'PEN', name: 'Sol Peruano', symbol: 'S/' },
+            { code: 'BRL', name: 'Real Brasileño', symbol: 'R$' },
+            { code: 'CAD', name: 'Canadian Dollar', symbol: '$' },
+            { code: 'AUD', name: 'Australian Dollar', symbol: '$' },
+            { code: 'JPY', name: 'Japanese Yen', symbol: '¥' }
+        ];
+
+        function renderCurrencyList() {
+            const listContainer = document.getElementById('currency-list');
+            listContainer.innerHTML = '';
+            availableCurrencies.forEach(curr => {
+                const isSelected = curr.code === currentFiat;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-4 py-3 rounded-xl mb-2 flex justify-between items-center transition-colors ${isSelected ? 'bg-yellow-500 text-gray-900 font-bold' : 'bg-gray-800 text-white hover:bg-gray-700'}`;
+                btn.onclick = () => seleccionarMoneda(curr.code);
+                btn.innerHTML = `
+                    <span>${curr.name} (${curr.code})</span>
+                    <span class="font-mono ${isSelected ? 'text-gray-900' : 'text-yellow-400'}">${curr.symbol}</span>
+                `;
+                listContainer.appendChild(btn);
+            });
+        }
+
+        function toggleCurrencyMenu() {
+            const menu = document.getElementById('currency-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        async function seleccionarMoneda(code) {
+            const curr = availableCurrencies.find(c => c.code === code);
+            currentFiat = curr.code;
+            fiatSymbol = curr.symbol;
+            
+            // Actualizar el selector en la interfaz
+            document.getElementById('opt-fiat').textContent = `${currentFiat} (${fiatSymbol})`;
+            
+            // Cerrar menú y renderizar de nuevo la lista para marcar el seleccionado
+            toggleCurrencyMenu();
+            renderCurrencyList();
+            
+            // Obtener el nuevo precio y recalcular
+            await obtenerPrecioBTC();
+            calcularConversion();
+        }
+
+        async function obtenerPrecioBTC() {
+            const preview = document.getElementById('conversion-preview');
+            preview.innerHTML = `<svg class="animate-spin h-4 w-4 mr-1 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Actualizando...`;
+            
+            try {
+                const res = await fetch(`https://api.coinbase.com/v2/prices/spot?currency=${currentFiat}`);
+                const data = await res.json();
+                if (data && data.data && data.data.amount) {
+                    btcPriceFiat = parseFloat(data.data.amount);
+                }
+            } catch (e) {
+                console.warn("Error al obtener precio de BTC");
+            }
+            calcularConversion();
+        }
+
+        function calcularConversion() {
+            const amountInput = parseFloat(document.getElementById('amount').value);
+            const currencyType = document.getElementById('currency').value;
+            const preview = document.getElementById('conversion-preview');
+
+            if (!amountInput || isNaN(amountInput) || amountInput <= 0) {
+                preview.innerHTML = "";
+                return;
+            }
+
+            if (currencyType === 'SATS') {
+                // De Sats a Moneda Local
+                const fiatValue = (amountInput / 100000000) * btcPriceFiat;
+                preview.innerHTML = `≈ ${fiatSymbol}${fiatValue.toFixed(4)} ${currentFiat}`;
+            } else if (currencyType === 'FIAT') {
+                // De Moneda Local a Sats
+                const satsValue = Math.round((amountInput / btcPriceFiat) * 100000000);
+                preview.innerHTML = `≈ ${satsValue.toLocaleString()} Sats`;
+            }
+        }
+
+        // --- SISTEMA DE TRADUCCIÓN ---
+        let currentLang = 'es';
+        const i18n = {
+            es: {
+                title: "Donate RankyFNF",
+                subtitle: "Apoya mediante Lightning Network ⚡",
+                helpText: "Ayuda a nuestros autores y coautores a hacer el mod más útil",
+                amountLabel: "Cantidad:",
+                amountLimits: "Mín: 100 | Máx: 25M Sats",
+                btnGenerate: "Generar",
+                invoiceSuccess: "Invoice generado con éxito",
+                btnPay: "Pagar Invoice",
+                btnCopyAddress: "Copiar Dirección",
+                adLabel: "Anuncio",
+                btnOffer: "Ver oferta &rarr;",
+                back: "Regresar",
+                selectCurrencyTitle: "Moneda Local",
+                alertCopyAddress: "Dirección copiada. Puedes pegarla en tu billetera.",
+                alertCopyInvoice: "Invoice copiado al portapapeles",
+                errAmount: "Por favor ingresa una cantidad válida.",
+                errLimits: "La cantidad final debe estar entre 100 y 25,000,000 Sats.",
+                errServer: "Error al conectar con el servidor."
+            },
+            en: {
+                title: "Donate RankyFNF",
+                subtitle: "Support via Lightning Network ⚡",
+                helpText: "Help our authors & co-authors make the mod more useful",
+                amountLabel: "Amount:",
+                amountLimits: "Min: 100 | Max: 25M Sats",
+                btnGenerate: "Generate",
+                invoiceSuccess: "Invoice generated successfully",
+                btnPay: "Pay Invoice",
+                btnCopyAddress: "Copy Address",
+                adLabel: "Ad",
+                btnOffer: "View offer &rarr;",
+                back: "Go Back",
+                selectCurrencyTitle: "Local Currency",
+                alertCopyAddress: "Address copied. You can paste it in your wallet.",
+                alertCopyInvoice: "Invoice copied to clipboard",
+                errAmount: "Please enter a valid amount.",
+                errLimits: "Final amount must be between 100 and 25,000,000 Sats.",
+                errServer: "Error connecting to server."
+            }
+        };
+
+        const ads = [
+            {
+                text: {
+                    es: "<strong>Descuento OKX DEX:</strong> Consigue un 8% de descuento usando el código <span class='text-yellow-400 font-mono'>ERICKZB</span>.",
+                    en: "<strong>OKX DEX Discount:</strong> Get an 8% discount using code <span class='text-yellow-400 font-mono'>ERICKZB</span>."
+                },
+                link: "https://web3.okx.com/join/ERICKZB"
+            },
+            {
+                text: {
+                    es: "<strong>Únete a Grass:</strong> Gana recompensas compartiendo tu red y recibe <strong>5000 puntos de bono</strong> de bienvenida al entrar.",
+                    en: "<strong>Join Grass:</strong> Earn rewards by sharing your network and get a <strong>5000 points welcome bonus</strong> upon joining."
+                },
+                link: "https://b4.cc.cd/mZec46"
+            },
+            {
+                text: {
+                    es: "<strong>Prueba Slice:</strong> Monetiza tu navegación web. Slice es una extensión que te paga pasivamente por ver anuncios no intrusivos mientras usas internet de forma normal.",
+                    en: "<strong>Try Slice:</strong> Monetize your web browsing. Slice is an extension that pays you passively for viewing non-intrusive ads while using the internet normally."
+                },
+                link: "https://b4.cc.cd/G9xJ1T"
+            }
+        ];
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('html-tag').lang = lang;
+            
+            const btnEs = document.getElementById('btn-es');
+            const btnEn = document.getElementById('btn-en');
+            
+            if(lang === 'es') {
+                btnEs.className = "px-3 py-1 rounded-full bg-yellow-500 text-gray-900 font-bold transition-colors text-sm";
+                btnEn.className = "px-3 py-1 rounded-full text-gray-400 hover:text-white transition-colors text-sm font-bold";
+            } else {
+                btnEn.className = "px-3 py-1 rounded-full bg-yellow-500 text-gray-900 font-bold transition-colors text-sm";
+                btnEs.className = "px-3 py-1 rounded-full text-gray-400 hover:text-white transition-colors text-sm font-bold";
+            }
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key]) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        // --- FUNCIONES BÁSICAS ---
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        function copiarDireccion() {
+            const direccion = "donate@rankyfnf.cc.cd";
+            navigator.clipboard.writeText(direccion).then(() => {
+                alert(i18n[currentLang].alertCopyAddress);
+            });
+        }
+
+        function copiarInvoice(element) {
+            element.select();
+            document.execCommand('copy');
+            alert(i18n[currentLang].alertCopyInvoice);
+        }
+
+        // --- GENERACIÓN DE INVOICE ---
+        async function generarInvoice() {
+            const amountInput = parseFloat(document.getElementById('amount').value);
+            const currencyType = document.getElementById('currency').value;
+            const errorMsg = document.getElementById('error-msg');
+            const btnGenerate = document.getElementById('btn-generate');
+            
+            errorMsg.classList.add('hidden');
+
+            if (!amountInput || isNaN(amountInput) || amountInput <= 0) {
+                errorMsg.textContent = i18n[currentLang].errAmount;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            let satsFinales = 0;
+            if (currencyType === 'SATS') {
+                satsFinales = Math.round(amountInput);
+            } else if (currencyType === 'FIAT') {
+                satsFinales = Math.round((amountInput / btcPriceFiat) * 100000000);
+            }
+
+            if (satsFinales < 100 || satsFinales > 25000000) {
+                errorMsg.textContent = i18n[currentLang].errLimits;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const msats = satsFinales * 1000;
+            const lnAddress = "donate@rankyfnf.cc.cd";
+            const [username, domain] = lnAddress.split('@');
+            const lnurlpEndpoint = `https://${domain}/.well-known/lnurlp/${username}`;
+
+            try {
+                btnGenerate.innerHTML = `<svg class="animate-spin h-5 w-5 text-gray-900 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+                btnGenerate.disabled = true;
+
+                const response = await fetch(lnurlpEndpoint);
+                const data = await response.json();
+
+                if (data.status === 'ERROR') {
+                    throw new Error(data.reason || "Error API");
+                }
+
+                const callbackUrl = new URL(data.callback);
+                callbackUrl.searchParams.append('amount', msats);
+
+                const invoiceResponse = await fetch(callbackUrl.toString());
+                const invoiceData = await invoiceResponse.json();
+
+                if (invoiceData.status === 'ERROR') {
+                    throw new Error(invoiceData.reason || "Error Invoice");
+                }
+
+                const invoice = invoiceData.pr;
+
+                document.getElementById('invoice-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=lightning:${invoice}`;
+                document.getElementById('invoice-text').value = invoice;
+                document.getElementById('pay-button').href = `lightning:${invoice}`;
+                
+                document.getElementById('invoice-result').classList.remove('hidden');
+                document.getElementById('default-actions').classList.add('hidden');
+
+            } catch (error) {
+                console.error(error);
+                errorMsg.textContent = i18n[currentLang].errServer;
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btnGenerate.innerHTML = `<span data-i18n="btnGenerate">${i18n[currentLang].btnGenerate}</span>`;
+                btnGenerate.disabled = false;
+            }
+        }
+
+        // --- SISTEMA DE ANUNCIOS ANIMADOS ---
+        let currentAdIndex = 0;
+        function mostrarSiguienteAnuncio() {
+            const ad = ads[currentAdIndex];
+            const adContent = document.getElementById('ad-content');
+            const banner = document.getElementById('ad-banner');
+            
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                let html = `<p class="mb-3 text-gray-200">${ad.text[currentLang]}</p>`;
+                if (ad.link) {
+                    html += `<a href="${ad.link}" target="_blank" rel="noopener noreferrer" class="inline-block bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 text-xs font-bold px-4 py-2 rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all shadow-md transform hover:scale-105">${i18n[currentLang].btnOffer}</a>`;
+                }
+
+                adContent.innerHTML = html;
+                banner.classList.remove('hidden');
+                
+                requestAnimationFrame(() => {
+                    banner.style.opacity = '1';
+                    banner.style.transform = 'translateY(0)';
+                });
+
+                currentAdIndex = (currentAdIndex + 1) % ads.length;
+            }, 300);
+        }
+
+        function cerrarBanner() {
+            const banner = document.getElementById('ad-banner');
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 500);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            setLanguage('es');
+            renderCurrencyList();
+            await obtenerPrecioBTC();
+            setInterval(mostrarSiguienteAnuncio, 5000);
+        });
+    </script>
+</body>
+</html>
