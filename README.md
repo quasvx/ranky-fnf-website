@@ -52,7 +52,7 @@ Quasvx: Lead Engineering / Technical Architecture / API Development.
 ¿Quieres reportar un error o dar feedback? / Wanna report a bug or share feedback?
 
 Join our Community! / ¡Únete a la comunidad! (Discord/WhatsApp)
-https://ranky.pages.dev/discord
+https://rankyfnf.cc.cd/discord
 https://chat.whatsapp.com/EolcRShcdq3BML1fKpFpOn
 ---
 If you are going to use parts of this code or of the mod, please give proper credit.
@@ -62,4 +62,4 @@ Related with https://github.com/quasvx/Ranky-Website-Landing-Page
 
 Relacionado con https://github.com/quasvx/Ranky-Website-Landing-Page
 
-*Ranky System v4.9.4 | 2026*
+*Ranky System v3.8.5-stable | 2026*
